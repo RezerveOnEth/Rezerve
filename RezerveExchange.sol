@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0
+
 pragma solidity >=0.7.0 <0.9.0;
+
 abstract contract Context {
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
+
     function _msgData() internal view virtual returns (bytes calldata) {
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
     }
 }
+
+
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
  * checks.
@@ -36,8 +41,10 @@ library SafeMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
         require(c >= a, "SafeMath: addition overflow");
+
         return c;
     }
+
     /**
      * @dev Returns the subtraction of two unsigned integers, reverting on
      * overflow (when the result is negative).
@@ -51,6 +58,7 @@ library SafeMath {
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
         return sub(a, b, "SafeMath: subtraction overflow");
     }
+
     /**
      * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
      * overflow (when the result is negative).
@@ -64,8 +72,10 @@ library SafeMath {
     function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
+
         return c;
     }
+
     /**
      * @dev Returns the multiplication of two unsigned integers, reverting on
      * overflow.
@@ -83,10 +93,13 @@ library SafeMath {
         if (a == 0) {
             return 0;
         }
+
         uint256 c = a * b;
         require(c / a == b, "SafeMath: multiplication overflow");
+
         return c;
     }
+
     /**
      * @dev Returns the integer division of two unsigned integers. Reverts on
      * division by zero. The result is rounded towards zero.
@@ -102,6 +115,7 @@ library SafeMath {
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
         return div(a, b, "SafeMath: division by zero");
     }
+
     /**
      * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
      * division by zero. The result is rounded towards zero.
@@ -118,8 +132,10 @@ library SafeMath {
         require(b > 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
         return c;
     }
+
     /**
      * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
      * Reverts when dividing by zero.
@@ -135,6 +151,7 @@ library SafeMath {
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
         return mod(a, b, "SafeMath: modulo by zero");
     }
+
     /**
      * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
      * Reverts with custom message when dividing by zero.
@@ -152,6 +169,7 @@ library SafeMath {
         return a % b;
     }
 }
+
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP.
  */
@@ -160,10 +178,12 @@ interface IERC20 {
      * @dev Returns the amount of tokens in existence.
      */
     function totalSupply() external view returns (uint256);
+
     /**
      * @dev Returns the amount of tokens owned by `account`.
      */
     function balanceOf(address account) external view returns (uint256);
+
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
      *
@@ -172,6 +192,7 @@ interface IERC20 {
      * Emits a {Transfer} event.
      */
     function transfer(address recipient, uint256 amount) external returns (bool);
+
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
      * allowed to spend on behalf of `owner` through {transferFrom}. This is
@@ -180,6 +201,7 @@ interface IERC20 {
      * This value changes when {approve} or {transferFrom} are called.
      */
     function allowance(address owner, address spender) external view returns (uint256);
+
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
      *
@@ -195,6 +217,7 @@ interface IERC20 {
      * Emits an {Approval} event.
      */
     function approve(address spender, uint256 amount) external returns (bool);
+
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
      * allowance mechanism. `amount` is then deducted from the caller's
@@ -205,6 +228,7 @@ interface IERC20 {
      * Emits a {Transfer} event.
      */
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
      * another (`to`).
@@ -212,15 +236,20 @@ interface IERC20 {
      * Note that `value` may be zero.
      */
     event Transfer(address indexed from, address indexed to, uint256 value);
+
     /**
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
+
+
 abstract contract Ownable is Context {
     address private _owner;
+
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
@@ -229,12 +258,14 @@ abstract contract Ownable is Context {
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
     }
+
     /**
      * @dev Returns the address of the current owner.
      */
     function owner() public view virtual returns (address) {
         return _owner;
     }
+
     /**
      * @dev Throws if called by any account other than the owner.
      */
@@ -247,6 +278,7 @@ abstract contract Ownable is Context {
      * @dev Throws if called by any account other than the owner.
      */
     
+
     /**
      * @dev Leaves the contract without owner. It will not be possible to call
      * `onlyOwner` functions anymore. Can only be called by the current owner.
@@ -258,6 +290,7 @@ abstract contract Ownable is Context {
         emit OwnershipTransferred(_owner, address(0));
         _owner = address(0);
     }
+
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
@@ -268,6 +301,10 @@ abstract contract Ownable is Context {
         _owner = newOwner;
     }
 } 
+
+
+
+
 contract ReflectVault  {
     
     using SafeMath for uint256;
@@ -308,9 +345,13 @@ contract ReflectVault  {
     }
     
 }
+
 interface Reserve {
     function totalSupply() external ;
 }
+
+
+
 /**
  * @title VaultStaking
  * @dev Stake VLT/BNB LP Tokens
@@ -318,6 +359,7 @@ interface Reserve {
 contract ReserveExchange  is Ownable {
     
     using SafeMath for uint256;
+
     IERC20  public token;
     IERC20  public dai;
    
@@ -329,7 +371,7 @@ contract ReserveExchange  is Ownable {
   
     constructor () {
        
-        ReserveAddress = 0x1fd1e897E46221B25aA9Bf7Afa983e304bcA0453;
+        ReserveAddress = 0x8f25cb64726b6afC87E674BE99661618b72fd866;
         token = IERC20 ( ReserveAddress ); 
         DaiAddress = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
         dai = IERC20 ( DaiAddress );
@@ -343,8 +385,8 @@ contract ReserveExchange  is Ownable {
    function exchangeReserve ( uint256 _amount ) public {
        
        token.transferFrom ( msg.sender, address(this), _amount );
-       //dai.transfer ( msg.sender, exchangeAmount ( _amount ));
-       //token.transfer ( burnAddress, _amount );
+       dai.transfer ( msg.sender, exchangeAmount ( _amount ));
+       token.transfer ( burnAddress, _amount );
        
    }
   
@@ -363,6 +405,11 @@ contract ReserveExchange  is Ownable {
    function floorPrice() public view returns ( uint256 ){
        
        return  ((daiBalance().mul(10**18)).div(currentsupply())).div(10**9);
+       
+   }
+   
+   function flush() public {
+        token.transfer ( burnAddress, token.balanceOf(address(this)) );
        
    }
     
