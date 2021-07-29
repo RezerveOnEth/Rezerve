@@ -1,3 +1,34 @@
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+  
+   #BEE
+   
+   #LIQ+#RFI+#SHIB+#DOGE = #BEE
+
+   #SAFEMOON features:
+   3% fee auto add to the liquidity pool to locked forever when selling
+   2% fee auto distribute to all holders
+   I created a black hole so #Bee token will deflate itself in supply with every transaction
+   50% Supply is burned at start.
+   
+
+ */
+
 pragma solidity ^0.8.6;
 // SPDX-License-Identifier: Unlicensed
 interface IERC20 {
@@ -1177,7 +1208,6 @@ contract Rezerve is Context, IERC20, Ownable {
         if(from != owner() && to != owner())
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
         action = 0;
-        action = 3;
         if( from == uniswapV2Pair ) action = 1;
         if( to == address(uniswapV2Router) ) action = 2;
         // is the token balance of this contract address over the min number of
@@ -1395,3 +1425,4 @@ contract Rezerve is Context, IERC20, Ownable {
     
 
 }
+{"mode":"full","isActive":false}
