@@ -372,7 +372,7 @@ contract ReserveStaking  is Ownable {
     
     
     
-    uint256 public timePeriod = 5 minutes;
+    uint256 public timePeriod = 30 days;
    
    
     
@@ -397,9 +397,10 @@ contract ReserveStaking  is Ownable {
         Reserve _reserve = Reserve ( ReserveAddress );
         _reserve.includeAddress(address(_reflectvault));
         _reserve.excludeFromFee(address(_reflectvault));
-        reflectVaultCount++;
+       
         reflectVaultAddress[ reflectVaultCount ] = address ( _reflectvault ); 
         reflectVaultOwner[ reflectVaultCount ] = msg.sender; 
+        reflectVaultCount++;
         token.transferFrom ( msg.sender , address(this), _depositamount );
        
         token.transfer ( address(_reflectvault) , _depositamount );
@@ -418,4 +419,3 @@ contract ReserveStaking  is Ownable {
   
   
 }
-{"mode":"full","isActive":false}
