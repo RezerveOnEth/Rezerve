@@ -371,7 +371,7 @@ contract ReserveExchange  is Ownable {
   
     constructor () {
        
-        ReserveAddress = 0x8f25cb64726b6afC87E674BE99661618b72fd866;
+        ReserveAddress = 0x0A8EDae24Af929be180d512795Ab3C1Eb123E182;
         token = IERC20 ( ReserveAddress ); 
         DaiAddress = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
         dai = IERC20 ( DaiAddress );
