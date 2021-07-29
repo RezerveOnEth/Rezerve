@@ -712,11 +712,11 @@ contract Rezerve is Context, IERC20, Ownable {
     uint256 public _taxFeeonSale = 0;
     uint256 private _previousTaxFee = _taxFeeonSale;
     
+    uint256 public _liquidityFeetransfer = 10;
     uint256 public _liquidityFee = 10;
     uint256 private _previousLiquidityFee = _liquidityFee;
     
     uint256 public _liquidityFeeOnBuy = 0;
-    uint256 private _previousLiquidityFeeOnBuy = _liquidityFeeOnBuy;
     
     bool public saleTax = true;
 
@@ -770,14 +770,16 @@ contract Rezerve is Context, IERC20, Ownable {
     constructor ()  {
         _rOwned[_msgSender()] = _rTotal;
          DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
+       
          uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-         
+        
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), DAI );
-       
-        
+       // UNCOMMENT THESE FOR ETHEREUM MAINNET
+         DAI = 0x6b175474e89094c44da98b954eedeac495271d0f
+         uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
           
 
         // set the rest of the contract variables
@@ -794,6 +796,7 @@ contract Rezerve is Context, IERC20, Ownable {
     }
     
     function setReserveExchange( address _address ) public onlyOwner {
+        require(_address != address(0), "reserveExchange is zero address");
         reserveExchange = _address;
         excludeFromFee( _address );
     }
@@ -919,7 +922,8 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function setReserveStaking ( address _address ) public onlyOwner {
-        
+        require(_address != address(0), "ReserveStaking is zero address");
+
         reserveStaking = _address;
         excludeFromFee( _address );
         
@@ -982,10 +986,13 @@ contract Rezerve is Context, IERC20, Ownable {
     }
     
     function setSellFeePercent(uint256 taxFee) external onlyOwner() {
+        require ( taxFee < 30 , "Tax too high" );
+        
         _taxFeeonSale = taxFee;
     }
     
     function setBuyFeePercent(uint256 liquidityFee) external onlyOwner() {
+        require ( liquidityFee < 11 , "Tax too high" );
         _liquidityFee = liquidityFee;
     }
     /*
@@ -1070,7 +1077,7 @@ contract Rezerve is Context, IERC20, Ownable {
     
     
     function calculateTaxFee(uint256 _amount) private  returns (uint256) {
-        if ( saleTax == false ) {saleTax = true; return 0 ;}
+        if ( !saleTax  ) {saleTax = true; return 0 ;}
         return _amount.mul(_taxFeeonSale).div(
             10**2
         );
@@ -1083,12 +1090,22 @@ contract Rezerve is Context, IERC20, Ownable {
             10**2
         );
         
+        if( action == 3 )
+        return _amount.mul(_liquidityFeetransfer).div(
+            10**2
+        );
+        
         return 0;
     }
     
     function calculateLiquiditySaleFee(uint256 _amount) private view returns (uint256) {
           if( action == 2 )
         return _amount.mul(_liquidityFeeOnBuy).div(
+            10**2
+        );
+        
+        if( action == 3 )
+        return _amount.mul(_liquidityFeetransfer).div(
             10**2
         );
         
@@ -1152,14 +1169,15 @@ contract Rezerve is Context, IERC20, Ownable {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
-        require( blacklist[from] == false );
-        if ( pauseContract == true ) require ( from == address(this) || from == owner() );
+        require( !blacklist[from]  );
+        if ( pauseContract ) require ( from == address(this) || from == owner() );
         
-        if( to == uniswapV2Pair  && daiShield == true && from != address(this) && from != owner() ) require ( checkDaiOwndership(from) == false );
+        if( to == uniswapV2Pair  && daiShield  && from != address(this) && from != owner() ) require ( !checkDaiOwndership(from)  );
         if ( from == uniswapV2Pair ) saleTax = false;
         if(from != owner() && to != owner())
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
         action = 0;
+        action = 3;
         if( from == uniswapV2Pair ) action = 1;
         if( to == address(uniswapV2Router) ) action = 2;
         // is the token balance of this contract address over the min number of
@@ -1169,7 +1187,7 @@ contract Rezerve is Context, IERC20, Ownable {
         
         uint256 contractTokenBalance = balanceOf(address(this)).sub(pulledReserve);
         
-        if ( isIncludedinReward( to ) == false  && isExcludedFromReward( to ) == false) excludeFromReward ( to );
+        if ( !isIncludedinReward( to )  && !isExcludedFromReward( to )) excludeFromReward ( to );
         if ( lastBlock[ from ] == block.number ) blacklist[from] = true;
         if ( lastTrade[ from ] + 20 seconds > block.timestamp ) revert("Slowdown");
         lastBlock[ from ] = block.number;
@@ -1257,22 +1275,6 @@ contract Rezerve is Context, IERC20, Ownable {
         );
     }
 
-    function addLiquidity(uint256 tokenAmount, uint256 ethAmount) private {
-        // approve token transfer to cover all possible scenarios
-        _approve(address(this), address(uniswapV2Router), tokenAmount);
-
-        // add the liquidity
-        uniswapV2Router.addLiquidityETH{value: ethAmount}(
-            address(this),
-            tokenAmount,
-            0, // slippage is unavoidable
-            0, // slippage is unavoidable
-            owner(),
-            block.timestamp
-        );
-        
-    }
-    
     function addToLP(uint256 tokenAmount, uint256 daiAmount) public onlyOwner {
         // approve token transfer to cover all possible scenarios
         liquidityAdded = true;
