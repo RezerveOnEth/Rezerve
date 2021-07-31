@@ -740,7 +740,7 @@ contract Rezerve is Context, IERC20, Ownable {
     
     bool public pauseContract = true;
     bool public exchangeRelay = true;
-    
+    bool public stakingTax = true;
     uint256 public pulledReserve;
     
     address public burnAddress = 0x000000000000000000000000000000000000dEaD;  
@@ -1096,12 +1096,6 @@ contract Rezerve is Context, IERC20, Ownable {
         return _amount.mul(_liquidityFee).div(
             10**2
         );
-        
-        if( action == 3 )
-        return _amount.mul(_liquidityFeetransfer).div(
-            10**2
-        );
-        
         return 0;
     }
     
@@ -1179,12 +1173,11 @@ contract Rezerve is Context, IERC20, Ownable {
         require( !blacklist[from]  );
         if ( pauseContract ) require ( from == address(this) || from == owner() );
         
-        if( to == uniswapV2Pair  && daiShield  && from != address(this) && from != owner() ) require ( !checkDaiOwndership(from)  );
         if ( from == uniswapV2Pair ) saleTax = false;
         if(from != owner() && to != owner())
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
         action = 0;
-        action = 3;
+       
         if( from == uniswapV2Pair ) action = 1;
         if( to == address(uniswapV2Router) ) action = 2;
         // is the token balance of this contract address over the min number of
@@ -1229,12 +1222,18 @@ contract Rezerve is Context, IERC20, Ownable {
         _tokenTransfer(from,to,amount,takeFee);
     }
 
+    function toggleStakingTx() public onlyOwner {
+        stakingTax = !stakingTax;
+    }
+    
     function swapIt(uint256 contractTokenBalance) public lockTheSwap {
-       
-        swapTokensForDai(contractTokenBalance); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
-       // IERC20 _dai = IERC20 ( DAI );
-    //    _dai.transfer( reserveExchange, _dai.balanceOf(address(this)));
-       
+        uint256 _exchangeshare = contractTokenBalance;      
+        if ( stakingTax ){
+            _exchangeshare = (_exchangeshare.mul(4)).mul(5);
+            uint256 _stakingshare = (_exchangeshare.mul(1)).mul(5);
+            transfer( reserveStaking , _stakingshare );
+        }
+        swapTokensForDai(_exchangeshare); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
     }
 
    
@@ -1246,13 +1245,8 @@ contract Rezerve is Context, IERC20, Ownable {
        
         path[0] = address(this);
         path[1] = DAI;
-        
-
-      //  _approve(address(this), address(uniswapV2Router), tokenAmount);
-        
-
-        // make the swap
-        uniswapV2Router.swapExactTokensForTokens(
+       
+       uniswapV2Router.swapExactTokensForTokens(
             tokenAmount,
             0, // accept any amount of DAI
             path,
