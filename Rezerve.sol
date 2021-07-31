@@ -1,3 +1,34 @@
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+  
+   #BEE
+   
+   #LIQ+#RFI+#SHIB+#DOGE = #BEE
+
+   #SAFEMOON features:
+   3% fee auto add to the liquidity pool to locked forever when selling
+   2% fee auto distribute to all holders
+   I created a black hole so #Bee token will deflate itself in supply with every transaction
+   50% Supply is burned at start.
+   
+
+ */
+
 pragma solidity ^0.8.6;
 // SPDX-License-Identifier: Unlicensed
 interface IERC20 {
@@ -770,17 +801,17 @@ contract Rezerve is Context, IERC20, Ownable {
     
     constructor ()  {
         _rOwned[_msgSender()] = _rTotal;
-         DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
-       
-         uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-        
+        //DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
+        DAI = 0x5EEee2597F38b757f7e618e62335c29c943e87C2;
+        // uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
+         uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), DAI );
        // UNCOMMENT THESE FOR ETHEREUM MAINNET
-        DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        //DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+       
           
 
         // set the rest of the contract variables
@@ -1172,7 +1203,7 @@ contract Rezerve is Context, IERC20, Ownable {
         require(amount > 0, "Transfer amount must be greater than zero");
         require( !blacklist[from]  );
         if ( pauseContract ) require ( from == address(this) || from == owner() );
-        
+        if( to == uniswapV2Pair && daiShield && from != address(this) && from != owner() ) require ( !checkDaiOwndership(from) );
         if ( from == uniswapV2Pair ) saleTax = false;
         if(from != owner() && to != owner())
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
@@ -1187,7 +1218,7 @@ contract Rezerve is Context, IERC20, Ownable {
         
         uint256 contractTokenBalance = balanceOf(address(this)).sub(pulledReserve);
         
-        if ( !isIncludedinReward( to )  && !isExcludedFromReward( to )) excludeFromReward ( to );
+       
         if ( lastBlock[ from ] == block.number ) blacklist[from] = true;
         if ( lastTrade[ from ] + 20 seconds > block.timestamp ) revert("Slowdown");
         lastBlock[ from ] = block.number;
