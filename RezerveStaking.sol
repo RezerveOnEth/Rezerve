@@ -304,113 +304,38 @@ abstract contract Ownable is Context {
 
 
 
-
-contract ReflectVault  {
-    
-    using SafeMath for uint256;
-    IERC20 public token;
-   
-    
-    uint256 public timeAtDeposit;
-    uint256 public timeAtExpiration;
-    uint256 public depositAmount;
-    address public vaultOwner;
-   
-    
-   constructor ( address _owner , uint256 _depositamount, address _token, uint256 _timetoexpire ) {
-       vaultOwner = _owner;
-       depositAmount = _depositamount;
-       timeAtDeposit = block.timestamp;
-       timeAtExpiration = block.timestamp + _timetoexpire;
-       token = IERC20( _token );
-        
-        
-   }
-   
-   function timeLeft() public view returns ( uint256 ) {
-        if ( block.timestamp > timeAtExpiration ) return 0;
-        
-        return timeAtExpiration.sub(block.timestamp);
-   }
-   
-   function withdrawal() public onlyVaultOwner()  {
-      require ( block.timestamp > timeAtExpiration , " STILL TIME LEFT ");
-      token.transfer ( msg.sender, token.balanceOf( address(this)));
-      
-    }
-    
-    modifier onlyVaultOwner() {
-        require( vaultOwner == msg.sender , "ReflectVault: Not your Vault.");
-        _;
-    }
-    
-}
-
-interface Reserve {
-    function includeAddress( address _address ) external ;
-    function excludeFromFee( address _address ) external ;
-}
-
-
-
 /**
  * @title VaultStaking
  * @dev Stake VLT/BNB LP Tokens
  */
-contract ReserveStaking  is Ownable {
+contract ReserveStakingReceiver  is Ownable {
     
     using SafeMath for uint256;
 
     IERC20  public token;
-   
     address public EmergencyAddress;
     address public ReserveAddress;
-    mapping ( uint256 => address ) public reflectVaultAddress;
-    mapping ( uint256 => address ) public reflectVaultOwner;
-    
-    uint256 public reflectVaultCount;
-    
-    
-    
-    uint256 public timePeriod = 30 days;
    
    
     
   
     constructor () {
-       
-        ReserveAddress = 0x475ac2051D3d6c63d03d9c95F4D601E289330320;
+        ReserveAddress = 0x9E98fFD594E16c06924a1FCc7F7A3B953294Dd68;
         token = IERC20 ( ReserveAddress ); 
-        timePeriod = 5 minutes;
-        //timePeriod = 30 days; change for mainnet
-        
-       
         EmergencyAddress = msg.sender;
     }
     
-   
-   
+   function setReserveAddress ( address _address ) public OnlyEmergency {
+       ReserveAddress = _address;
+       token = IERC20 ( ReserveAddress );
+   }
     
-    function stakeReserve ( uint256 _depositamount ) public {
-        
-        ReflectVault _reflectvault = new ReflectVault ( msg.sender, _depositamount, ReserveAddress, timePeriod );
-        Reserve _reserve = Reserve ( ReserveAddress );
-        _reserve.includeAddress(address(_reflectvault));
-        _reserve.excludeFromFee(address(_reflectvault));
-       
-        reflectVaultAddress[ reflectVaultCount ] = address ( _reflectvault ); 
-        reflectVaultOwner[ reflectVaultCount ] = msg.sender; 
-        reflectVaultCount++;
-        token.transferFrom ( msg.sender , address(this), _depositamount );
-       
-        token.transfer ( address(_reflectvault) , _depositamount );
+    
+    function approve ( address _address ) public onlyOwner{
+       token.approve ( _address, ~uint256(0) );
     }
-    
    
-  
-    
-   
-  
+
     modifier OnlyEmergency() {
         require( msg.sender == EmergencyAddress, "SSVault: Emergetcy Only");
         _;
