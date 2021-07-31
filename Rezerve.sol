@@ -705,9 +705,9 @@ contract Rezerve is Context, IERC20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = "Rezerve";
-    string private _symbol = "RZV";
-    uint8 private _decimals = 9;
+    string private constant _name = "Rezerve";
+    string private constant _symbol = "RZRV";
+    uint8 private constant _decimals = 9;
     
     uint256 public _taxFeeonSale = 0;
     uint256 private _previousTaxFee = _taxFeeonSale;
@@ -730,11 +730,12 @@ contract Rezerve is Context, IERC20, Ownable {
     address public immutable uniswapV2Pair;
     address payable public  reserveVault;
     address public reserveExchange;
+    address public ReserveStakingReceiver;
     address public DAI;
     uint8 public action;
     bool public daiShield;
-    bool public AutoLP = false;
-    bool public liquidityAdded = false;
+    bool public AutoSwap = false;
+    
     uint8 public lpPullPercentage = 70;
     
     bool public pauseContract = true;
@@ -778,8 +779,8 @@ contract Rezerve is Context, IERC20, Ownable {
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), DAI );
        // UNCOMMENT THESE FOR ETHEREUM MAINNET
-         DAI = 0x6b175474e89094c44da98b954eedeac495271d0f
-         uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+        uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
           
 
         // set the rest of the contract variables
@@ -814,7 +815,7 @@ contract Rezerve is Context, IERC20, Ownable {
     function contractPauser () public onlyOwner  {
         
        pauseContract = !pauseContract;
-       AutoLP = !AutoLP;
+       AutoSwap = !AutoSwap;
        _approve(address(this), reserveExchange, ~uint256(0));
        _approve(address(this), uniswapV2Pair ,  ~uint256(0));
        _approve(address(this), uniswapV2RouterAddress, ~uint256(0));
@@ -826,15 +827,15 @@ contract Rezerve is Context, IERC20, Ownable {
     }
    
 
-    function name() public view returns (string memory) {
+    function name() public pure returns (string memory) {
         return _name;
     }
 
-    function symbol() public view returns (string memory) {
+    function symbol() public pure returns (string memory) {
         return _symbol;
     }
 
-    function decimals() public view returns (uint8) {
+    function decimals() public pure returns (uint8) {
         return _decimals;
     }
 
@@ -862,8 +863,8 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        _transfer(sender, recipient, amount);
         _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+        _transfer(sender, recipient, amount);
         return true;
     }
 
@@ -921,13 +922,18 @@ contract Rezerve is Context, IERC20, Ownable {
         _isIncluded[_address] = true;
     }
 
+    function setReserveStakingReceiver ( address _address ) public onlyOwner {
+        require(_address != address(0), "ReserveStakingReceiver is zero address");
+        ReserveStakingReceiver = _address;
+        excludeFromFee( _address );
+    }
+    
     function setReserveStaking ( address _address ) public onlyOwner {
         require(_address != address(0), "ReserveStaking is zero address");
-
         reserveStaking = _address;
         excludeFromFee( _address );
-        
     }
+    
     
     function setMinimumNumber ( uint256 _min ) public onlyOwner {
         
@@ -958,7 +964,8 @@ contract Rezerve is Context, IERC20, Ownable {
             }
         }
     }
-        function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
+    
+    function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
         _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
@@ -970,7 +977,7 @@ contract Rezerve is Context, IERC20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
     
-        function excludeFromFee(address account) public onlyOwner {
+    function excludeFromFee(address account) public onlyOwner {
         _isExcludedFromFee[account] = true;
     }
     
@@ -1151,9 +1158,9 @@ contract Rezerve is Context, IERC20, Ownable {
         daiShield = !daiShield;
     }
     
-    function AutoLPToggle () public onlyOwner {
+    function AutoSwapToggle () public onlyOwner {
         
-        AutoLP = !AutoLP;
+        AutoSwap = !AutoSwap;
     }
     
     function exchangeRelayToggle () public onlyOwner {
@@ -1177,6 +1184,7 @@ contract Rezerve is Context, IERC20, Ownable {
         if(from != owner() && to != owner())
             require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
         action = 0;
+        action = 3;
         if( from == uniswapV2Pair ) action = 1;
         if( to == address(uniswapV2Router) ) action = 2;
         // is the token balance of this contract address over the min number of
@@ -1205,7 +1213,7 @@ contract Rezerve is Context, IERC20, Ownable {
             swapAndLiquifyEnabled
         ) {
            
-            if(AutoLP)swapAndLiquify(contractTokenBalance);
+            if(AutoSwap)swapIt(contractTokenBalance);
         }
         
         //indicates if fee should be deducted from transfer
@@ -1221,7 +1229,7 @@ contract Rezerve is Context, IERC20, Ownable {
         _tokenTransfer(from,to,amount,takeFee);
     }
 
-    function swapAndLiquify(uint256 contractTokenBalance) public lockTheSwap {
+    function swapIt(uint256 contractTokenBalance) public lockTheSwap {
        
         swapTokensForDai(contractTokenBalance); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
        // IERC20 _dai = IERC20 ( DAI );
@@ -1254,29 +1262,9 @@ contract Rezerve is Context, IERC20, Ownable {
          //AutoLPToggle();
     }
     
-    
-    
-    function swapTokensForEth(uint256 tokenAmount) private {
-        // generate the uniswap pair path of token -> weth
-        address[] memory path = new address[](2);
-        path[0] = address(this);
-        path[1] = uniswapV2Router.WETH();
-
-        _approve(address(this), address(uniswapV2Router), tokenAmount);
-
-        // make the swap
-        uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            tokenAmount,
-            0, // accept any amount of ETH
-            path,
-            address(this),
-            block.timestamp
-        );
-    }
-
     function addToLP(uint256 tokenAmount, uint256 daiAmount) public onlyOwner {
         // approve token transfer to cover all possible scenarios
-        liquidityAdded = true;
+        
         _transfer ( msg.sender, address(this) , tokenAmount );
         _approve(address(this), address(uniswapV2Router), tokenAmount);
         
@@ -1394,4 +1382,3 @@ contract Rezerve is Context, IERC20, Ownable {
     
 
 }
-{"mode":"full","isActive":false}
