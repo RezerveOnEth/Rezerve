@@ -304,48 +304,6 @@ abstract contract Ownable is Context {
 
 
 
-
-contract ReflectVault  {
-    
-    using SafeMath for uint256;
-    IERC20 public token;
-   
-    
-    uint256 public timeAtDeposit;
-    uint256 public timeAtExpiration;
-    uint256 public depositAmount;
-    address public vaultOwner;
-   
-    
-   constructor ( address _owner , uint256 _depositamount, address _token, uint256 _timetoexpire ) {
-       vaultOwner = _owner;
-       depositAmount = _depositamount;
-       timeAtDeposit = block.timestamp;
-       timeAtExpiration = block.timestamp + _timetoexpire;
-       token = IERC20( _token );
-        
-        
-   }
-   
-   function timeLeft() public view returns ( uint256 ) {
-        if ( block.timestamp > timeAtExpiration ) return 0;
-        
-        return timeAtExpiration.sub(block.timestamp);
-   }
-   
-   function withdrawal() public onlyVaultOwner()  {
-      require ( block.timestamp > timeAtExpiration , " STILL TIME LEFT ");
-      token.transfer ( msg.sender, token.balanceOf( address(this)));
-      
-    }
-    
-    modifier onlyVaultOwner() {
-        require( vaultOwner == msg.sender , "ReflectVault: Not your Vault.");
-        _;
-    }
-    
-}
-
 interface Reserve {
     function totalSupply() external ;
 }
@@ -379,7 +337,7 @@ contract ReserveExchange  is Ownable {
         
         burnAddress = 0x000000000000000000000000000000000000dEaD;   
         
-    }
+    }A
     
    
    function exchangeReserve ( uint256 _amount ) public {
@@ -414,6 +372,7 @@ contract ReserveExchange  is Ownable {
    }
     
    function setReserve ( address _address ) public OnlyEmergency {
+       require(_address != address(0), "ERC20: transfer from the zero address");
        ReserveAddress = _address;
        token = IERC20 ( ReserveAddress ); 
    }
@@ -427,4 +386,3 @@ contract ReserveExchange  is Ownable {
   
   
 }
-{"mode":"full","isActive":false}
