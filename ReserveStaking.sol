@@ -1142,6 +1142,8 @@ contract MasterChef is Ownable {
     // The block number when SUSHI mining starts.
     uint256 public startBlock;
     
+    address public reserveAddress;
+    
     mapping ( address => bool ) public tokenAdded;
     
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -1155,12 +1157,14 @@ contract MasterChef is Ownable {
     constructor(
        
     ) {
-        sushi = SushiToken (0xA8339616c616D85352336b27db2785A8160Ef34f);
+        reserveAddress  = 0xA8339616c616D85352336b27db2785A8160Ef34f;
+        sushi = SushiToken (reserveAddress);
         Receiver = 0x31040760372657c69C3296104A9f01de727f05d6;
         devaddr = msg.sender;
         sushiPerBlock = 4 * ( 10 ** 15 );
         bonusEndBlock = block.number;
         startBlock = block.number;
+        add(  100 , IERC20(reserveAddress) ,true );
     }
 
     function poolLength() external view returns (uint256) {
@@ -1172,7 +1176,7 @@ contract MasterChef is Ownable {
         uint256 _allocPoint,
         IERC20 _lpToken,
         bool _withUpdate
-    ) public onlyOwner {
+    ) internal {
         if (_withUpdate) {
             massUpdatePools();
         }
