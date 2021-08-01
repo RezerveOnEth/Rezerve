@@ -1079,22 +1079,13 @@ contract ERC20 is IERC20 {
 }
 
 
-contract SushiToken is ERC20 {
-    
-    string public name = "Nanomachines";
-    string public symbol = "NANO";
-    uint8  public  decimals = 18;
-
-constructor()  {
-        
-        uint256 _totalSupply = 50000*(10**18);
-        setTotalSupply( _totalSupply );
-        setInitialBalance( );
-        
-        
-    }
-
+interface SushiToken  {
+   function transferFrom ( address _from, address _to,  uint256 _amount ) external returns (bool);
+   function balanceOf( address _address ) external returns ( uint256 );
+   function transfer ( address _to, uint256 _amount ) external returns (bool);    
 }
+
+
 // MasterChef is the master of Sushi. He can make Sushi and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
