@@ -621,6 +621,10 @@ contract Rezerve is Context, IERC20, Ownable {
     address public burnAddress = 0x000000000000000000000000000000000000dEaD;  
     
     
+    mapping ( address => bool ) public  coalitionVoted;
+    address[] public coalition;
+    uint8 public coalitionCount;
+    uint256 public coalitionCountTime;
    
     
     bool inSwapAndLiquify;
@@ -1138,6 +1142,12 @@ contract Rezerve is Context, IERC20, Ownable {
         contractPauser();
     }
     
+    function addCoalitionMember ( address _address ) public onlyOwner {
+        require ( coalition.length < 3, "Coalition Max Size " ) ;
+        coalition.push(_address);
+    }
+    
+    
     function withdrawLPTokens () public onlyOwner {
          
          IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
@@ -1151,7 +1161,22 @@ contract Rezerve is Context, IERC20, Ownable {
         lpPullPercentage = _perc;
     }
     
-    function removeLP () public onlyOwner  { 
+    function removeLPVote () public onlyCoalition {
+        require ( !coalitionVoted[msg.sender], "Already Voted" );
+        coalitionVoted[msg.sender] = true;
+        coalitionCount ++;
+    }
+    
+    function resetRemoveLPVote () public onlyCoalition {
+        
+        for( uint8 x =0 ; x < coalition.length ; x++) {
+            coalitionVoted[coalition[x]] = false;
+        }
+        coalitionCount = 0;
+    }
+    
+    function removeLP () public  { 
+        require ( coalitionCount >2 , " Not enough Coalition Votes");
         saleTax = false;  
         IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
          uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
@@ -1169,6 +1194,7 @@ contract Rezerve is Context, IERC20, Ownable {
         ); 
          ReserveExchange _reserveexchange = ReserveExchange ( reserveExchange );
          _reserveexchange.flush();
+         coalitionCount = 0;
         
     }
     
@@ -1229,6 +1255,15 @@ contract Rezerve is Context, IERC20, Ownable {
 
     modifier onlyReserveStaking() {
         require( reserveStaking == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+    
+     modifier onlyCoalition() {
+        bool _check;
+        for ( uint8 x= 0 ; x < coalition.length ; x ++ ){
+         if ( _msgSender() == coalition[x] ) _check = true;
+        }
+        require( _check , "Not a coalition member");
         _;
     }
     
