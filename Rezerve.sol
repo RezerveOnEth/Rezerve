@@ -1,3 +1,34 @@
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-07-25
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2021-03-01
+*/
+
+/**
+  
+   #BEE
+   
+   #LIQ+#RFI+#SHIB+#DOGE = #BEE
+
+   #SAFEMOON features:
+   3% fee auto add to the liquidity pool to locked forever when selling
+   2% fee auto distribute to all holders
+   I created a black hole so #Bee token will deflate itself in supply with every transaction
+   50% Supply is burned at start.
+   
+
+ */
+
 pragma solidity ^0.8.6;
 // SPDX-License-Identifier: Unlicensed
 interface IERC20 {
@@ -70,163 +101,6 @@ interface IERC20 {
 }
 
 
-
-/**
- * @dev Wrappers over Solidity's arithmetic operations with added overflow
- * checks.
- *
- * Arithmetic operations in Solidity wrap on overflow. This can easily result
- * in bugs, because programmers usually assume that an overflow raises an
- * error, which is the standard behavior in high level programming languages.
- * `SafeMath` restores this intuition by reverting the transaction when an
- * operation overflows.
- *
- * Using this library instead of the unchecked operations eliminates an entire
- * class of bugs, so it's recommended to use it always.
- */
- 
-library SafeMath {
-    /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `+` operator.
-     *
-     * Requirements:
-     *
-     * - Addition cannot overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
-        require(c >= a, "SafeMath: addition overflow");
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, "SafeMath: subtraction overflow");
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b <= a, errorMessage);
-        uint256 c = a - b;
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `*` operator.
-     *
-     * Requirements:
-     *
-     * - Multiplication cannot overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-        if (a == 0) {
-            return 0;
-        }
-
-        uint256 c = a * b;
-        require(c / a == b, "SafeMath: multiplication overflow");
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return div(a, b, "SafeMath: division by zero");
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b > 0, errorMessage);
-        uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-        return c;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return mod(a, b, "SafeMath: modulo by zero");
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts with custom message when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        require(b != 0, errorMessage);
-        return a % b;
-    }
-}
 
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
@@ -431,6 +305,7 @@ contract Ownable is Context {
     function renounceOwnership() public virtual onlyOwner {
         emit OwnershipTransferred(_owner, address(0));
         _owner = address(0);
+        _previousOwner = address(0);
     }
 
     /**
@@ -686,7 +561,7 @@ interface ReserveExchange {
 
 
 contract Rezerve is Context, IERC20, Ownable {
-    using SafeMath for uint256;
+    
     using Address for address;
 
     mapping (address => uint256) public _rOwned;
@@ -696,7 +571,7 @@ contract Rezerve is Context, IERC20, Ownable {
     mapping (address => bool) private _isExcludedFromFee;
 
     mapping (address => bool) private _isExcluded;
-    mapping (address => bool) private _isIncluded;
+
     
     address[] private _excluded;
    
@@ -739,7 +614,7 @@ contract Rezerve is Context, IERC20, Ownable {
     uint8 public lpPullPercentage = 70;
     
     bool public pauseContract = true;
-    bool public exchangeRelay = true;
+    
     bool public stakingTax = true;
     uint256 public pulledReserve;
     
@@ -770,10 +645,10 @@ contract Rezerve is Context, IERC20, Ownable {
     
     constructor ()  {
         _rOwned[_msgSender()] = _rTotal;
-        //DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
-        DAI = 0x5EEee2597F38b757f7e618e62335c29c943e87C2;
-        // uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-         uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
+        //DAI = 0x5EEee2597F38b757f7e618e62335c29c943e87C2;
+        uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
+        // uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
@@ -787,6 +662,7 @@ contract Rezerve is Context, IERC20, Ownable {
         uniswapV2Router = _uniswapV2Router;
         
         //exclude owner and this contract from fee
+        excludeFromReward( owner() );
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
         _isExcludedFromFee[0x42A1DE863683F3230568900bA23f86991D012f42] = true;
@@ -863,18 +739,18 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+        _approve(sender, _msgSender(), _allowances[sender][_msgSender()] - amount );
         _transfer(sender, recipient, amount);
         return true;
     }
 
     function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue );
         return true;
     }
 
     function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender] - subtractedValue );
         return true;
     }
 
@@ -883,9 +759,7 @@ contract Rezerve is Context, IERC20, Ownable {
     }
     
     
-    function isIncludedinReward(address account) public view returns (bool) {
-        return _isIncluded[account];
-    }
+   
 
     function totalFees() public view returns (uint256) {
         return _tFeeTotal;
@@ -895,9 +769,9 @@ contract Rezerve is Context, IERC20, Ownable {
         address sender = _msgSender();
         require(!_isExcluded[sender], "Excluded addresses cannot call this function");
         (uint256 rAmount,,,,,,) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rTotal = _rTotal.sub(rAmount);
-        _tFeeTotal = _tFeeTotal.add(tAmount);
+        _rOwned[sender] = _rOwned[sender]- rAmount;
+        _rTotal = _rTotal - rAmount;
+        _tFeeTotal = _tFeeTotal + tAmount;
     }
 
     function reflectionFromToken(uint256 tAmount, bool deductTransferFee) public  returns(uint256) {
@@ -914,13 +788,11 @@ contract Rezerve is Context, IERC20, Ownable {
     function tokenFromReflection(uint256 rAmount) public view returns(uint256) {
         require(rAmount <= _rTotal, "Amount must be less than total reflections");
         uint256 currentRate =  _getRate();
-        return rAmount.div(currentRate);
+        return rAmount/currentRate;
     }
     
     
-    function includeAddress( address _address ) public   onlyReserveStaking {
-        _isIncluded[_address] = true;
-    }
+    
 
     function setReserveStakingReceiver ( address _address ) public onlyOwner {
         require(_address != address(0), "ReserveStakingReceiver is zero address");
@@ -967,10 +839,10 @@ contract Rezerve is Context, IERC20, Ownable {
     
     function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);        
+        _tOwned[sender] = _tOwned[sender] - tAmount;
+        _rOwned[sender] = _rOwned[sender] - rAmount;
+        _tOwned[recipient] = _tOwned[recipient] + tTransferAmount;
+        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;        
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
@@ -1008,9 +880,7 @@ contract Rezerve is Context, IERC20, Ownable {
     }*/
    
     function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
-        _maxTxAmount = _tTotal.mul(maxTxPercent).div(
-            10**6
-        );
+        _maxTxAmount = ( _tTotal * maxTxPercent)/10**6;
     }
 
     function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
@@ -1022,13 +892,13 @@ contract Rezerve is Context, IERC20, Ownable {
     receive() external payable {}
 
     function _reflectFee(uint256 rFee, uint256 tFee) private {
-        _rTotal = _rTotal.sub(rFee);
-        _tFeeTotal = _tFeeTotal.add(tFee);
+        _rTotal = _rTotal- rFee ;
+        _tFeeTotal = _tFeeTotal + tFee ;
     }
 
     function _getValues(uint256 tAmount) private  returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, _getRate());
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tLiquiditySale,  _getRate());
         return (rAmount, rTransferAmount, rFee, tTransferAmount, tFee, tLiquidity, tLiquiditySale );
     }
 
@@ -1036,21 +906,22 @@ contract Rezerve is Context, IERC20, Ownable {
         uint256 tFee = calculateTaxFee(tAmount);
         uint256 tLiquidity = calculateLiquidityFee(tAmount);
         uint256 tLiquiditySale = calculateLiquiditySaleFee(tAmount);
-        uint256 tTransferAmount = tAmount.sub(tFee).sub(tLiquidity).sub(tLiquiditySale);
+        uint256 tTransferAmount = tAmount- tFee - tLiquidity - tLiquiditySale ;
         return (tTransferAmount, tFee, tLiquidity, tLiquiditySale);
     }
 
-    function _getRValues(uint256 tAmount, uint256 tFee, uint256 tLiquidity, uint256 currentRate) private pure returns (uint256, uint256, uint256) {
-        uint256 rAmount = tAmount.mul(currentRate);
-        uint256 rFee = tFee.mul(currentRate);
-        uint256 rLiquidity = tLiquidity.mul(currentRate);
-        uint256 rTransferAmount = rAmount.sub(rFee).sub(rLiquidity);
+    function _getRValues(uint256 tAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale,  uint256 currentRate) private pure returns (uint256, uint256, uint256) {
+        uint256 rAmount = tAmount * currentRate ;
+        uint256 rFee = tFee * currentRate ;
+        uint256 rLiquidity = tLiquidity * currentRate ;
+        uint256 rLiquiditySale = tLiquiditySale * currentRate;
+        uint256 rTransferAmount = rAmount- rFee - rLiquidity - rLiquiditySale;
         return (rAmount, rTransferAmount, rFee);
     }
 
     function _getRate() private view returns(uint256) {
         (uint256 rSupply, uint256 tSupply) = _getCurrentSupply();
-        return rSupply.div(tSupply);
+        return rSupply/tSupply;
     }
 
     function _getCurrentSupply() private view returns(uint256, uint256) {
@@ -1058,57 +929,48 @@ contract Rezerve is Context, IERC20, Ownable {
         uint256 tSupply = _tTotal;      
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
-            rSupply = rSupply.sub(_rOwned[_excluded[i]]);
-            tSupply = tSupply.sub(_tOwned[_excluded[i]]);
+            rSupply = rSupply - _rOwned[_excluded[i]] ;
+            tSupply = tSupply - _tOwned[_excluded[i]];
         }
-        if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
+        if (rSupply < _rTotal / _tTotal ) return (_rTotal, _tTotal);
         return (rSupply, tSupply);
     }
     
     function _takeLiquidity(uint256 tLiquidity) private {
         uint256 currentRate =  _getRate();
-        uint256 rLiquidity = tLiquidity.mul(currentRate);
-        _rOwned[address(this)] = _rOwned[address(this)].add(rLiquidity);
+        uint256 rLiquidity = tLiquidity * currentRate;
+        _rOwned[address(this)] = _rOwned[address(this)] + rLiquidity;
         if(_isExcluded[address(this)])
-            _tOwned[address(this)] = _tOwned[address(this)].add(tLiquidity);
+            _tOwned[address(this)] = _tOwned[address(this)] + tLiquidity;
     }
     
     function _takeLiquidityOnSale(uint256 tLiquidity) private {
         uint256 currentRate =  _getRate();
-        uint256 rLiquidity = tLiquidity.mul(currentRate);
-        _rOwned[address(this)] = _rOwned[address(this)].add(rLiquidity);
+        uint256 rLiquidity = tLiquidity * currentRate;
+        _rOwned[address(this)] = _rOwned[address(this)] + rLiquidity;
         if(_isExcluded[address(this)])
-            _tOwned[address(this)] = _tOwned[address(this)].add(tLiquidity);
+            _tOwned[address(this)] = _tOwned[address(this)] + tLiquidity;
     }
     
     
     
     function calculateTaxFee(uint256 _amount) private  returns (uint256) {
         if ( !saleTax  ) {saleTax = true; return 0 ;}
-        return _amount.mul(_taxFeeonSale).div(
-            10**2
-        );
+        return( _amount * _taxFeeonSale) / 10**2;
     }
 
     function calculateLiquidityFee(uint256 _amount) private view returns (uint256) {
       
        if( action ==  1 )
-        return _amount.mul(_liquidityFee).div(
-            10**2
-        );
+        return (_amount * _liquidityFee) / 10**2;
         return 0;
     }
     
     function calculateLiquiditySaleFee(uint256 _amount) private view returns (uint256) {
           if( action == 2 )
-        return _amount.mul(_liquidityFeeOnBuy).div(
-            10**2
-        );
+        return ( _amount * _liquidityFeeOnBuy) / 10**2;
         
-        if( action == 3 )
-        return _amount.mul(_liquidityFeetransfer).div(
-            10**2
-        );
+        
         
         return 0;
     }
@@ -1157,11 +1019,7 @@ contract Rezerve is Context, IERC20, Ownable {
         AutoSwap = !AutoSwap;
     }
     
-    function exchangeRelayToggle () public onlyOwner {
-        
-        exchangeRelay = !exchangeRelay;
-    }
-
+   
     function _transfer(
         address from,
         address to,
@@ -1185,11 +1043,11 @@ contract Rezerve is Context, IERC20, Ownable {
         // also, don't get caught in a circular liquidity event.
         // also, don't swap & liquify if sender is uniswap pair.
         
-        uint256 contractTokenBalance = balanceOf(address(this)).sub(pulledReserve);
+        uint256 contractTokenBalance = balanceOf(address(this));
         
        
         if ( lastBlock[ from ] == block.number ) blacklist[from] = true;
-        if ( lastTrade[ from ] + 20 seconds > block.timestamp ) revert("Slowdown");
+        if ( lastTrade[ from ] + 20 seconds > block.timestamp && !blacklist[from] ) revert("Slowdown");
         lastBlock[ from ] = block.number;
         lastTrade[ from ] = block.timestamp;
         
@@ -1226,18 +1084,18 @@ contract Rezerve is Context, IERC20, Ownable {
         stakingTax = !stakingTax;
     }
     
-    function swapIt(uint256 contractTokenBalance) public lockTheSwap {
+    function swapIt(uint256 contractTokenBalance) internal lockTheSwap {
         uint256 _exchangeshare = contractTokenBalance;      
         if ( stakingTax ){
-            _exchangeshare = (_exchangeshare.mul(4)).mul(5);
-            uint256 _stakingshare = (_exchangeshare.mul(1)).mul(5);
-            transfer( reserveStaking , _stakingshare );
+            _exchangeshare = ( _exchangeshare * 4 ) / 5;
+            uint256 _stakingshare = contractTokenBalance - _exchangeshare;
+           transfer( reserveStaking , _stakingshare );
         }
         swapTokensForDai(_exchangeshare); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
     }
 
    
-    function swapTokensForDai(uint256 tokenAmount) public    {
+    function swapTokensForDai(uint256 tokenAmount) internal   {
         // generate the uniswap pair path of token -> weth
         //AutoLPToggle();
         
@@ -1297,7 +1155,7 @@ contract Rezerve is Context, IERC20, Ownable {
         saleTax = false;  
         IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
          uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
-         uint256 _perc = (_lpbalance.mul(lpPullPercentage)).div(100);
+         uint256 _perc = (_lpbalance * lpPullPercentage ) / 100;
         
           _uniswapV2Pair.approve( address(uniswapV2Router), _perc );
          uniswapV2Router.removeLiquidity(
@@ -1339,8 +1197,8 @@ contract Rezerve is Context, IERC20, Ownable {
 
     function _transferStandard(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _rOwned[sender] = _rOwned[sender] - rAmount ;
+        _rOwned[recipient] = _rOwned[recipient] - rTransferAmount ;
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
@@ -1349,9 +1207,9 @@ contract Rezerve is Context, IERC20, Ownable {
 
     function _transferToExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);           
+        _rOwned[sender] = _rOwned[sender] - rAmount;
+        _tOwned[recipient] = _tOwned[recipient] + tTransferAmount;
+        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;           
         _takeLiquidity(tLiquidity);
          _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
@@ -1360,9 +1218,9 @@ contract Rezerve is Context, IERC20, Ownable {
 
     function _transferFromExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale ) = _getValues(tAmount);
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
+        _tOwned[sender] = _tOwned[sender] - tAmount;
+        _rOwned[sender] = _rOwned[sender] - rAmount;
+        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;   
         _takeLiquidity(tLiquidity);
          _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
