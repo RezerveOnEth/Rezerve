@@ -1,3 +1,11 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-08-06
+*/
+
+/**
+ *Submitted for verification at Etherscan.io on 2021-08-05
+*/
+
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
@@ -329,15 +337,15 @@ contract ReserveExchange  is Ownable {
   
     constructor () {
        
-        ReserveAddress = 0x0A8EDae24Af929be180d512795Ab3C1Eb123E182;
+        ReserveAddress = 0x95013734bAc94203C5e8C6A44A608DB4Fc6FFc8E;
         token = IERC20 ( ReserveAddress ); 
-        DaiAddress = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
+        DaiAddress = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C;
         dai = IERC20 ( DaiAddress );
         EmergencyAddress = msg.sender;
         
         burnAddress = 0x000000000000000000000000000000000000dEaD;   
         
-    }A
+    }
     
    
    function exchangeReserve ( uint256 _amount ) public {
