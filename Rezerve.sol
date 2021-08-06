@@ -1,4 +1,12 @@
 /**
+ *Submitted for verification at Etherscan.io on 2021-08-06
+*/
+
+/**
+ *Submitted for verification at Etherscan.io on 2021-08-05
+*/
+
+/**
  *Submitted for verification at BscScan.com on 2021-07-25
 */
 
@@ -649,10 +657,10 @@ contract Rezerve is Context, IERC20, Ownable {
     
     constructor ()  {
         _rOwned[_msgSender()] = _rTotal;
-        DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
-        //DAI = 0x5EEee2597F38b757f7e618e62335c29c943e87C2;
-        uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-        // uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        //DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
+        DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C;
+        //uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
+        uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
@@ -1224,7 +1232,7 @@ contract Rezerve is Context, IERC20, Ownable {
     function _transferStandard(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
         _rOwned[sender] = _rOwned[sender] - rAmount ;
-        _rOwned[recipient] = _rOwned[recipient] - rTransferAmount ;
+        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount ;
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
