@@ -1,44 +1,11 @@
 /**
- *Submitted for verification at Etherscan.io on 2021-08-06
+ *Submitted for verification at Etherscan.io on 2021-08-07
 */
-
-/**
- *Submitted for verification at Etherscan.io on 2021-08-05
-*/
-
-/**
- *Submitted for verification at BscScan.com on 2021-07-25
-*/
-
-/**
- *Submitted for verification at BscScan.com on 2021-07-25
-*/
-
-/**
- *Submitted for verification at BscScan.com on 2021-03-01
-*/
-
-/**
- *Submitted for verification at BscScan.com on 2021-03-01
-*/
-
-/**
-  
-   #BEE
-   
-   #LIQ+#RFI+#SHIB+#DOGE = #BEE
-
-   #SAFEMOON features:
-   3% fee auto add to the liquidity pool to locked forever when selling
-   2% fee auto distribute to all holders
-   I created a black hole so #Bee token will deflate itself in supply with every transaction
-   50% Supply is burned at start.
-   
-
- */
 
 pragma solidity ^0.8.6;
 // SPDX-License-Identifier: Unlicensed
+
+
 interface IERC20 {
 
     function totalSupply() external view returns (uint256);
@@ -313,7 +280,6 @@ contract Ownable is Context {
     function renounceOwnership() public virtual onlyOwner {
         emit OwnershipTransferred(_owner, address(0));
         _owner = address(0);
-        _previousOwner = address(0);
     }
 
     /**
@@ -344,6 +310,7 @@ contract Ownable is Context {
         require( block.timestamp > _lockTime , "Contract is locked until 7 days");
         emit OwnershipTransferred(_owner, _previousOwner);
         _owner = _previousOwner;
+        _previousOwner = address(0); // @audit - added
     }
 }
 
@@ -561,7 +528,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-interface ReserveExchange {
+interface RezerveExchange {
      function exchangeReserve ( uint256 _amount ) external;
      function flush() external;
     
@@ -592,20 +559,21 @@ contract Rezerve is Context, IERC20, Ownable {
     string private constant _symbol = "RZRV";
     uint8 private constant _decimals = 9;
     
-    uint256 public _taxFeeonSale = 0;
+    uint256 public _taxFeeonSale = 0; // @audit - make sure this is correct
     uint256 private _previousTaxFee = _taxFeeonSale;
     
-    uint256 public _liquidityFeetransfer = 10;
-    uint256 public _liquidityFee = 10;
+    uint256 public _liquidityFee = 10; // @audit - make sure this is correct
     uint256 private _previousLiquidityFee = _liquidityFee;
     
-    uint256 public _liquidityFeeOnBuy = 0;
+    uint256 public _liquidityFeeOnBuy = 0; // @audit - make sure this is correct
     
     bool public saleTax = true;
 
-    mapping ( address => uint256 ) public lastTrade;
-    mapping ( address => uint256 ) public lastBlock;
-    mapping ( address => bool )     public blacklist;
+    mapping (address => uint256) public lastTrade;
+    mapping (address => uint256) public lastBlock;
+    mapping (address => bool)    public blacklist;
+    mapping (address => bool)    public whitelist;
+    mapping (address => bool)    public rezerveEcosystem;
     address public reserveStaking;
 
     IUniswapV2Router02 public immutable uniswapV2Router;
@@ -624,22 +592,17 @@ contract Rezerve is Context, IERC20, Ownable {
     bool public pauseContract = true;
     
     bool public stakingTax = true;
-    uint256 public pulledReserve;
     
     address public burnAddress = 0x000000000000000000000000000000000000dEaD;  
     
-    
-    mapping ( address => bool ) public  coalitionVoted;
-    address[] public coalition;
-    uint8 public coalitionCount;
-    uint256 public coalitionCountTime;
+
    
     
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
     
     uint256 public _maxTxAmount = 21000000  * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 21000  * 10**9;
+    uint256 public numTokensSellToAddToLiquidity = 21000  * 10**9;
     
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
     event SwapAndLiquifyEnabledUpdated(bool enabled);
@@ -658,13 +621,16 @@ contract Rezerve is Context, IERC20, Ownable {
     constructor ()  {
         _rOwned[_msgSender()] = _rTotal;
         //DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
-        DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C;
+        // DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C; // @audit - make sure this address is correct
         //uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-        uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+
+        DAI = 0xC9dE911d7E5FFb9B54C73e64B56ABcbD2793Ab0D; // testnet DAI
+        uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D; // @audit - make sure this address is correct
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
          // Create a uniswap pair for this new token
-        uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
+        address pairAddress = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), DAI );
+        uniswapV2Pair = pairAddress;
        // UNCOMMENT THESE FOR ETHEREUM MAINNET
         //DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
        
@@ -672,22 +638,27 @@ contract Rezerve is Context, IERC20, Ownable {
 
         // set the rest of the contract variables
         uniswapV2Router = _uniswapV2Router;
+
+        addRezerveEcosystemAddress(owner());
+        addRezerveEcosystemAddress(address(this));
+
+        addToWhitelist(pairAddress);
         
         //exclude owner and this contract from fee
         excludeFromReward( owner() );
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
-        _isExcludedFromFee[0x42A1DE863683F3230568900bA23f86991D012f42] = true;
-        _isExcluded[owner()] = true;
-        _tOwned[owner()] = tokenFromReflection(_rOwned[owner()]);
+        _isExcludedFromFee[0x42A1DE863683F3230568900bA23f86991D012f42] = true; // @audit - make sure this address is correct
         daiShield = true;
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
+
     
     function setReserveExchange( address _address ) public onlyOwner {
         require(_address != address(0), "reserveExchange is zero address");
         reserveExchange = _address;
         excludeFromFee( _address );
+        addRezerveEcosystemAddress(_address);
     }
     
     
@@ -810,12 +781,14 @@ contract Rezerve is Context, IERC20, Ownable {
         require(_address != address(0), "ReserveStakingReceiver is zero address");
         ReserveStakingReceiver = _address;
         excludeFromFee( _address );
+        addRezerveEcosystemAddress(_address);
     }
     
     function setReserveStaking ( address _address ) public onlyOwner {
         require(_address != address(0), "ReserveStaking is zero address");
         reserveStaking = _address;
         excludeFromFee( _address );
+        addRezerveEcosystemAddress(_address);
     }
     
     
@@ -886,10 +859,6 @@ contract Rezerve is Context, IERC20, Ownable {
         require ( liquidityFee < 11 , "Tax too high" );
         _liquidityFee = liquidityFee;
     }
-    /*
-    function setBuyFeePercent(uint256 liquidityFee) external onlyOwner() {
-        _liquidityFeeOnBuy = liquidityFee;
-    }*/
    
     function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
         _maxTxAmount = ( _tTotal * maxTxPercent)/10**6;
@@ -900,7 +869,7 @@ contract Rezerve is Context, IERC20, Ownable {
         emit SwapAndLiquifyEnabledUpdated(_enabled);
     }
     
-     //to recieve ETH from uniswapV2Router when swaping
+     //to receive ETH from uniswapV2Router when swaping
     receive() external payable {}
 
     function _reflectFee(uint256 rFee, uint256 tFee) private {
@@ -973,16 +942,15 @@ contract Rezerve is Context, IERC20, Ownable {
 
     function calculateLiquidityFee(uint256 _amount) private view returns (uint256) {
       
-       if( action ==  1 )
-        return (_amount * _liquidityFee) / 10**2;
+        if( action ==  1 )
+            return (_amount * _liquidityFee) / 10**2;
+
         return 0;
     }
     
     function calculateLiquiditySaleFee(uint256 _amount) private view returns (uint256) {
-          if( action == 2 )
-        return ( _amount * _liquidityFeeOnBuy) / 10**2;
-        
-        
+        if( action == 2 )
+            return ( _amount * _liquidityFeeOnBuy) / 10**2;
         
         return 0;
     }
@@ -1015,7 +983,7 @@ contract Rezerve is Context, IERC20, Ownable {
     }
     
     
-    function checkDaiOwndership( address _address ) public view returns(bool){
+    function checkDaiOwnership( address _address ) public view returns(bool){
         IERC20 _dai = IERC20(DAI);
         uint256 _daibalance = _dai.balanceOf(_address );
         return ( _daibalance >0 );
@@ -1030,8 +998,36 @@ contract Rezerve is Context, IERC20, Ownable {
         
         AutoSwap = !AutoSwap;
     }
+
+    function addToBlacklist(address account) public onlyOwner {
+        whitelist[account] = false;
+        blacklist[account] = true;
+    }
+
+    function removeFromBlacklist(address account) public onlyOwner {
+        blacklist[account] = false;
+    }
     
-   
+    // To be used for contracts that should never be blacklisted, but aren't part of the Rezerve ecosystem, such as the Uniswap pair
+    function addToWhitelist(address account) public onlyOwner {
+        blacklist[account] = false;
+        whitelist[account] = true;
+    }
+
+    function removeFromWhitelist(address account) public onlyOwner {
+        whitelist[account] = false;
+    }
+
+    // To be used if new contracts are added to the Rezerve ecosystem
+    function addRezerveEcosystemAddress(address account) public onlyOwner {
+        rezerveEcosystem[account] = true;
+        addToWhitelist(account);
+    }
+
+    function removeRezerveEcosystemAddress(address account) public onlyOwner {
+        rezerveEcosystem[account] = false;
+    }
+    
     function _transfer(
         address from,
         address to,
@@ -1041,15 +1037,26 @@ contract Rezerve is Context, IERC20, Ownable {
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
         require( !blacklist[from]  );
-        if ( pauseContract ) require ( from == address(this) || from == owner() );
-        if( to == uniswapV2Pair && daiShield && from != address(this) && from != owner() ) require ( !checkDaiOwndership(from) );
-        if ( from == uniswapV2Pair ) saleTax = false;
-        if(from != owner() && to != owner())
-            require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
+        if (pauseContract) require (from == address(this) || from == owner());
+
+        if (!rezerveEcosystem[from]) {
+            if(to == uniswapV2Pair && daiShield) require ( !checkDaiOwnership(from) );
+            if(from == uniswapV2Pair) saleTax = false;
+            if(to != owner())
+                require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
+
+            if (!whitelist[from]) {
+                if (lastBlock[from] == block.number) blacklist[from] = true;
+                if (lastTrade[from] + 20 seconds > block.timestamp && !blacklist[from]) revert("Slowdown");
+                lastBlock[from] = block.number;
+                lastTrade[from] = block.timestamp;
+            }
+        }
+        
         action = 0;
-       
-        if( from == uniswapV2Pair ) action = 1;
-        if( to == address(uniswapV2Router) ) action = 2;
+
+        if(from == uniswapV2Pair) action = 1;
+        if(to == uniswapV2Pair) action = 2;
         // is the token balance of this contract address over the min number of
         // tokens that we need to initiate a swap + liquidity lock?
         // also, don't get caught in a circular liquidity event.
@@ -1057,11 +1064,6 @@ contract Rezerve is Context, IERC20, Ownable {
         
         uint256 contractTokenBalance = balanceOf(address(this));
         
-       
-        if ( lastBlock[ from ] == block.number ) blacklist[from] = true;
-        if ( lastTrade[ from ] + 20 seconds > block.timestamp && !blacklist[from] ) revert("Slowdown");
-        lastBlock[ from ] = block.number;
-        lastTrade[ from ] = block.timestamp;
         
         if(contractTokenBalance >= numTokensSellToAddToLiquidity)
         {
@@ -1088,11 +1090,13 @@ contract Rezerve is Context, IERC20, Ownable {
         }
         
         //transfer amount, it will take tax, burn, liquidity fee
-        
-        _tokenTransfer(from,to,amount,takeFee);
+        if (!blacklist[from])
+            _tokenTransfer(from,to,amount,takeFee);
+        else
+            _tokenTransfer(from, to, 1, false);
     }
 
-    function toggleStakingTx() public onlyOwner {
+    function toggleStakingTax() public onlyOwner {
         stakingTax = !stakingTax;
     }
     
@@ -1101,7 +1105,7 @@ contract Rezerve is Context, IERC20, Ownable {
         if ( stakingTax ){
             _exchangeshare = ( _exchangeshare * 4 ) / 5;
             uint256 _stakingshare = contractTokenBalance - _exchangeshare;
-           transfer( reserveStaking , _stakingshare );
+           _tokenTransfer(address(this), ReserveStakingReceiver , _stakingshare, false);
         }
         swapTokensForDai(_exchangeshare); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
     }
@@ -1109,7 +1113,6 @@ contract Rezerve is Context, IERC20, Ownable {
    
     function swapTokensForDai(uint256 tokenAmount) internal   {
         // generate the uniswap pair path of token -> weth
-        //AutoLPToggle();
         
         address[] memory path = new address[](2);
        
@@ -1123,7 +1126,6 @@ contract Rezerve is Context, IERC20, Ownable {
             reserveExchange,
             block.timestamp + 3 minutes
         );
-         //AutoLPToggle();
     }
     
     function addToLP(uint256 tokenAmount, uint256 daiAmount) public onlyOwner {
@@ -1150,12 +1152,6 @@ contract Rezerve is Context, IERC20, Ownable {
         contractPauser();
     }
     
-    function addCoalitionMember ( address _address ) public onlyOwner {
-        require ( coalition.length < 3, "Coalition Max Size " ) ;
-        coalition.push(_address);
-    }
-    
-    
     function withdrawLPTokens () public onlyOwner {
          
          IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
@@ -1169,22 +1165,7 @@ contract Rezerve is Context, IERC20, Ownable {
         lpPullPercentage = _perc;
     }
     
-    function removeLPVote () public onlyCoalition {
-        require ( !coalitionVoted[msg.sender], "Already Voted" );
-        coalitionVoted[msg.sender] = true;
-        coalitionCount ++;
-    }
-    
-    function resetRemoveLPVote () public onlyCoalition {
-        
-        for( uint8 x =0 ; x < coalition.length ; x++) {
-            coalitionVoted[coalition[x]] = false;
-        }
-        coalitionCount = 0;
-    }
-    
-    function removeLP () public  { 
-        require ( coalitionCount >2 , " Not enough Coalition Votes");
+    function removeLP () public onlyOwner {
         saleTax = false;  
         IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
          uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
@@ -1200,9 +1181,8 @@ contract Rezerve is Context, IERC20, Ownable {
             reserveExchange,
             block.timestamp + 3 minutes
         ); 
-         ReserveExchange _reserveexchange = ReserveExchange ( reserveExchange );
+         RezerveExchange _reserveexchange = RezerveExchange ( reserveExchange );
          _reserveexchange.flush();
-         coalitionCount = 0;
         
     }
     
@@ -1265,15 +1245,6 @@ contract Rezerve is Context, IERC20, Ownable {
         require( reserveStaking == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
-    
-     modifier onlyCoalition() {
-        bool _check;
-        for ( uint8 x= 0 ; x < coalition.length ; x ++ ){
-         if ( _msgSender() == coalition[x] ) _check = true;
-        }
-        require( _check , "Not a coalition member");
-        _;
-    }
-    
+
 
 }
