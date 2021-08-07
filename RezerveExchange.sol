@@ -1,4 +1,8 @@
 /**
+ *Submitted for verification at Etherscan.io on 2021-08-07
+*/
+
+/**
  *Submitted for verification at Etherscan.io on 2021-08-06
 */
 
@@ -322,7 +326,7 @@ interface Reserve {
  * @title VaultStaking
  * @dev Stake VLT/BNB LP Tokens
  */
-contract ReserveExchange  is Ownable {
+contract RezerveExchange  is Ownable {
     
     using SafeMath for uint256;
 
@@ -335,11 +339,12 @@ contract ReserveExchange  is Ownable {
     address public burnAddress;
     
   
-    constructor () {
+constructor () {
        
         ReserveAddress = 0x95013734bAc94203C5e8C6A44A608DB4Fc6FFc8E;
         token = IERC20 ( ReserveAddress ); 
-        DaiAddress = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C;
+        // DaiAddress = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C;
+        DaiAddress = 0xC9dE911d7E5FFb9B54C73e64B56ABcbD2793Ab0D; // testnet DAI
         dai = IERC20 ( DaiAddress );
         EmergencyAddress = msg.sender;
         
@@ -350,17 +355,15 @@ contract ReserveExchange  is Ownable {
    
    function exchangeReserve ( uint256 _amount ) public {
        
-       token.transferFrom ( msg.sender, address(this), _amount );
+       token.transferFrom ( msg.sender, burnAddress, _amount );
        dai.transfer ( msg.sender, exchangeAmount ( _amount ));
-       token.transfer ( burnAddress, _amount );
-       
    }
   
    function exchangeAmount ( uint256 _amount ) public view returns(uint256) {
-       return (_amount * floorPrice()).div(10**9);
+       return _amount * floorPrice();
    }
     
-   function currentsupply() public view returns(uint256){
+   function currentSupply() public view returns(uint256){
        return token.totalSupply().sub( token.balanceOf(burnAddress));
    } 
    
@@ -370,7 +373,7 @@ contract ReserveExchange  is Ownable {
    
    function floorPrice() public view returns ( uint256 ){
        
-       return  ((daiBalance().mul(10**18)).div(currentsupply())).div(10**9);
+       return  daiBalance().div(currentSupply());
        
    }
    
