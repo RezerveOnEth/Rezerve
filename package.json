@@ -1,0 +1,43 @@
+{
+	"name": "ops-token",
+	"version": "0.0.1",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "hardhat test",
+		"compile": "hardhat compile",
+		"deploy:mainnet": "hardhat deploy --network mainnet --tags ops",
+		"deploy:testnet": "hardhat deploy --network testnet --tags ops",
+		"verify:testnet": "hardhat --network testnet verify",
+		"verify:mainnet": "hardhat --network mainnet verify",
+		"run:testnet": "hardhat --network testnet run"
+	},
+	"keywords": [],
+	"author": "Chon Mars <firek7731@gmail.com>",
+	"license": "MIT",
+	"dependencies": {
+		"@openzeppelin/contracts": "4.2.0",
+		"@openzeppelin/contracts-upgradeable": "4.2.0"
+	},
+	"devDependencies": {
+		"@nomiclabs/hardhat-ethers": "2.0.2",
+		"@nomiclabs/hardhat-etherscan": "2.1.2",
+		"@nomiclabs/hardhat-waffle": "2.0.1",
+		"@openzeppelin/hardhat-upgrades": "1.9.0",
+		"@openzeppelin/test-helpers": "0.5.12",
+		"@types/chai": "^4.2.18",
+		"@types/mocha": "^8.2.2",
+		"@types/node": "^15.6.1",
+		"assert": "2.0.0",
+		"chai": "4.3.4",
+		"dotenv": "8.2.0",
+		"ethereum-waffle": "3.3.0",
+		"ethers": "5.1.0",
+		"hardhat": "2.5.0",
+		"hardhat-deploy": "^0.7.10",
+		"hardhat-deploy-ethers": "^0.3.0-beta.7",
+		"hardhat-gas-reporter": "^1.0.4",
+		"ts-node": "^10.0.0",
+		"typescript": "^4.3.2"
+	}
+}
