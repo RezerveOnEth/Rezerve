@@ -740,9 +740,6 @@ contract Rezerve is Context, IERC20, Ownable {
     function isExcludedFromReward(address account) public view returns (bool) {
         return _isExcluded[account];
     }
-    
-    
-   
 
     function totalFees() public view returns (uint256) {
         return _tFeeTotal;
@@ -774,9 +771,6 @@ contract Rezerve is Context, IERC20, Ownable {
         return rAmount/currentRate;
     }
     
-    
-    
-
     function setReserveStakingReceiver ( address _address ) public onlyOwner {
         require(_address != address(0), "ReserveStakingReceiver is zero address");
         ReserveStakingReceiver = _address;
@@ -793,9 +787,7 @@ contract Rezerve is Context, IERC20, Ownable {
     
     
     function setMinimumNumber ( uint256 _min ) public onlyOwner {
-        
         numTokensSellToAddToLiquidity = _min * 10** 9;
-        
     }
     
 
@@ -844,14 +836,11 @@ contract Rezerve is Context, IERC20, Ownable {
     
     function getLPBalance() public view returns(uint256){
         IERC20 _lp = IERC20 ( uniswapV2Pair);
-        
         return _lp.balanceOf(address(this));
-        
     }
     
     function setSellFeePercent(uint256 taxFee) external onlyOwner() {
         require ( taxFee < 30 , "Tax too high" );
-        
         _taxFeeonSale = taxFee;
     }
     
@@ -907,7 +896,7 @@ contract Rezerve is Context, IERC20, Ownable {
 
     function _getCurrentSupply() private view returns(uint256, uint256) {
         uint256 rSupply = _rTotal;
-        uint256 tSupply = _tTotal;      
+        uint256 tSupply = _tTotal;
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
             rSupply = rSupply - _rOwned[_excluded[i]] ;
@@ -941,7 +930,6 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function calculateLiquidityFee(uint256 _amount) private view returns (uint256) {
-      
         if( action ==  1 )
             return (_amount * _liquidityFee) / 10**2;
 
@@ -1077,8 +1065,7 @@ contract Rezerve is Context, IERC20, Ownable {
             from != uniswapV2Pair &&
             swapAndLiquifyEnabled
         ) {
-           
-            if(AutoSwap)swapIt(contractTokenBalance);
+            if(AutoSwap) swapIt(contractTokenBalance);
         }
         
         //indicates if fee should be deducted from transfer
@@ -1225,7 +1212,7 @@ contract Rezerve is Context, IERC20, Ownable {
         _tOwned[recipient] = _tOwned[recipient] + tTransferAmount;
         _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;           
         _takeLiquidity(tLiquidity);
-         _takeLiquidityOnSale(tLiquiditySale);
+        _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
@@ -1234,17 +1221,10 @@ contract Rezerve is Context, IERC20, Ownable {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale ) = _getValues(tAmount);
         _tOwned[sender] = _tOwned[sender] - tAmount;
         _rOwned[sender] = _rOwned[sender] - rAmount;
-        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;   
+        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;
         _takeLiquidity(tLiquidity);
-         _takeLiquidityOnSale(tLiquiditySale);
+        _takeLiquidityOnSale(tLiquiditySale);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
-
-    modifier onlyReserveStaking() {
-        require( reserveStaking == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-
 }
