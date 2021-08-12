@@ -539,7 +539,6 @@ contract Rezerve is Context, IERC20, Ownable {
     
     using Address for address;
 
-    mapping (address => uint256) public _rOwned;
     mapping (address => uint256) public _tOwned;
     mapping (address => mapping (address => uint256)) private _allowances;
 
@@ -552,7 +551,6 @@ contract Rezerve is Context, IERC20, Ownable {
    
     uint256 private constant MAX = ~uint256(0);
     uint256 private _tTotal = 21000000  * 10**9;
-    uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
     string private constant _name = "Rezerve";
@@ -586,24 +584,21 @@ contract Rezerve is Context, IERC20, Ownable {
     uint8 public action;
     bool public daiShield;
     bool public AutoSwap = false;
-    
-    uint8 public lpPullPercentage = 70;
-    
-    bool public pauseContract = true;
-    
-    bool public stakingTax = true;
-    
-    address public burnAddress = 0x000000000000000000000000000000000000dEaD;  
-    
 
-   
-    
+    uint8 public lpPullPercentage = 70;
+
+    bool public pauseContract = true;
+
+    bool public stakingTax = true;
+
+    address public burnAddress = 0x000000000000000000000000000000000000dEaD;  
+
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
-    
+
     uint256 public _maxTxAmount = 21000000  * 10**9;
     uint256 public numTokensSellToAddToLiquidity = 21000  * 10**9;
-    
+
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
     event SwapAndLiquifyEnabledUpdated(bool enabled);
     event SwapAndLiquify(
@@ -617,9 +612,8 @@ contract Rezerve is Context, IERC20, Ownable {
         _;
         inSwapAndLiquify = false;
     }
-    
+
     constructor ()  {
-        _rOwned[_msgSender()] = _rTotal;
         //DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
         // DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C; // @audit - make sure this address is correct
         //uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
@@ -633,8 +627,6 @@ contract Rezerve is Context, IERC20, Ownable {
         uniswapV2Pair = pairAddress;
        // UNCOMMENT THESE FOR ETHEREUM MAINNET
         //DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-       
-          
 
         // set the rest of the contract variables
         uniswapV2Router = _uniswapV2Router;
@@ -643,7 +635,7 @@ contract Rezerve is Context, IERC20, Ownable {
         addRezerveEcosystemAddress(address(this));
 
         addToWhitelist(pairAddress);
-        
+
         //exclude owner and this contract from fee
         excludeFromReward( owner() );
         _isExcludedFromFee[owner()] = true;
@@ -653,24 +645,21 @@ contract Rezerve is Context, IERC20, Ownable {
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
-    
     function setReserveExchange( address _address ) public onlyOwner {
         require(_address != address(0), "reserveExchange is zero address");
         reserveExchange = _address;
         excludeFromFee( _address );
         addRezerveEcosystemAddress(_address);
     }
-    
-    
+
     function thresholdMet () public  view returns ( bool ){
-        return  reserveBalance() > numTokensSellToAddToLiquidity ;
+        return reserveBalance() > numTokensSellToAddToLiquidity ;
     }
     
     function reserveBalance () public view returns(uint256) {
-        
         return balanceOf( address(this) );
     }
-    
+
     function contractPauser () public onlyOwner  {
         
        pauseContract = !pauseContract;
@@ -684,7 +673,6 @@ contract Rezerve is Context, IERC20, Ownable {
         _dai.approve( uniswapV2RouterAddress ,  ~uint256(0) );
         _dai.approve( reserveExchange ,  ~uint256(0) );
     }
-   
 
     function name() public pure returns (string memory) {
         return _name;
@@ -703,8 +691,7 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function balanceOf(address account) public view override returns (uint256) {
-        if (_isExcluded[account]) return _tOwned[account];
-        return tokenFromReflection(_rOwned[account]);
+        return _tOwned[account];
     }
 
     function transfer(address recipient, uint256 amount) public override returns (bool) {
@@ -748,128 +735,19 @@ contract Rezerve is Context, IERC20, Ownable {
     function deliver(uint256 tAmount) public {
         address sender = _msgSender();
         require(!_isExcluded[sender], "Excluded addresses cannot call this function");
-        (uint256 rAmount,,,,,,) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender]- rAmount;
-        _rTotal = _rTotal - rAmount;
         _tFeeTotal = _tFeeTotal + tAmount;
     }
 
-    function reflectionFromToken(uint256 tAmount, bool deductTransferFee) public  returns(uint256) {
-        require(tAmount <= _tTotal, "Amount must be less than supply");
-        if (!deductTransferFee) {
-            (uint256 rAmount,,,,,,) = _getValues(tAmount);
-            return rAmount;
-        } else {
-            (,uint256 rTransferAmount,,,,,) = _getValues(tAmount);
-            return rTransferAmount;
-        }
-    }
-
-    function tokenFromReflection(uint256 rAmount) public view returns(uint256) {
-        require(rAmount <= _rTotal, "Amount must be less than total reflections");
-        uint256 currentRate =  _getRate();
-        return rAmount/currentRate;
-    }
-    
-    function setReserveStakingReceiver ( address _address ) public onlyOwner {
-        require(_address != address(0), "ReserveStakingReceiver is zero address");
-        ReserveStakingReceiver = _address;
-        excludeFromFee( _address );
-        addRezerveEcosystemAddress(_address);
-    }
-    
-    function setReserveStaking ( address _address ) public onlyOwner {
-        require(_address != address(0), "ReserveStaking is zero address");
-        reserveStaking = _address;
-        excludeFromFee( _address );
-        addRezerveEcosystemAddress(_address);
-    }
-    
-    
-    function setMinimumNumber ( uint256 _min ) public onlyOwner {
-        numTokensSellToAddToLiquidity = _min * 10** 9;
-    }
-    
-
-    function excludeFromReward(address account) internal {
-        // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Uniswap router.');
-        require(!_isExcluded[account], "Account is already excluded");
-        if(_rOwned[account] > 0) {
-            _tOwned[account] = tokenFromReflection(_rOwned[account]);
-        }
-        _isExcluded[account] = true;
-        _excluded.push(account);
-    }
-
-    function includeInReward(address account) external onlyOwner() {
-        require(_isExcluded[account], "Account is already excluded");
-        for (uint256 i = 0; i < _excluded.length; i++) {
-            if (_excluded[i] == account) {
-                 _excluded[i] = _excluded[_excluded.length - 1];
-                _tOwned[account] = 0;
-                _isExcluded[account] = false;
-                _excluded.pop();
-                break;
-            }
-        }
-    }
-    
-    function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
-        _tOwned[sender] = _tOwned[sender] - tAmount;
-        _rOwned[sender] = _rOwned[sender] - rAmount;
-        _tOwned[recipient] = _tOwned[recipient] + tTransferAmount;
-        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;        
-        _takeLiquidity(tLiquidity);
-        _takeLiquidityOnSale(tLiquiditySale);
-        _reflectFee(rFee, tFee);
-        emit Transfer(sender, recipient, tTransferAmount);
-    }
-    
-    function excludeFromFee(address account) public onlyOwner {
-        _isExcludedFromFee[account] = true;
-    }
-    
-    function includeInFee(address account) public onlyOwner {
-        _isExcludedFromFee[account] = false;
-    }
-    
     function getLPBalance() public view returns(uint256){
         IERC20 _lp = IERC20 ( uniswapV2Pair);
         return _lp.balanceOf(address(this));
     }
-    
-    function setSellFeePercent(uint256 taxFee) external onlyOwner() {
-        require ( taxFee < 30 , "Tax too high" );
-        _taxFeeonSale = taxFee;
-    }
-    
-    function setBuyFeePercent(uint256 liquidityFee) external onlyOwner() {
-        require ( liquidityFee < 11 , "Tax too high" );
-        _liquidityFee = liquidityFee;
-    }
-   
-    function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
-        _maxTxAmount = ( _tTotal * maxTxPercent)/10**6;
-    }
 
-    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
-        swapAndLiquifyEnabled = _enabled;
-        emit SwapAndLiquifyEnabledUpdated(_enabled);
-    }
-    
-     //to receive ETH from uniswapV2Router when swaping
+    //to receive ETH from uniswapV2Router when swaping
     receive() external payable {}
 
-    function _reflectFee(uint256 rFee, uint256 tFee) private {
-        _rTotal = _rTotal- rFee ;
+    function _reflectFee(uint256 tFee) private {
         _tFeeTotal = _tFeeTotal + tFee ;
-    }
-
-    function _getValues(uint256 tAmount) private  returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
-        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getTValues(tAmount);
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, tLiquiditySale,  _getRate());
-        return (rAmount, rTransferAmount, rFee, tTransferAmount, tFee, tLiquidity, tLiquiditySale );
     }
 
     function _getTValues(uint256 tAmount) private  returns (uint256, uint256, uint256, uint256) {
@@ -880,49 +758,15 @@ contract Rezerve is Context, IERC20, Ownable {
         return (tTransferAmount, tFee, tLiquidity, tLiquiditySale);
     }
 
-    function _getRValues(uint256 tAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale,  uint256 currentRate) private pure returns (uint256, uint256, uint256) {
-        uint256 rAmount = tAmount * currentRate ;
-        uint256 rFee = tFee * currentRate ;
-        uint256 rLiquidity = tLiquidity * currentRate ;
-        uint256 rLiquiditySale = tLiquiditySale * currentRate;
-        uint256 rTransferAmount = rAmount- rFee - rLiquidity - rLiquiditySale;
-        return (rAmount, rTransferAmount, rFee);
-    }
-
-    function _getRate() private view returns(uint256) {
-        (uint256 rSupply, uint256 tSupply) = _getCurrentSupply();
-        return rSupply/tSupply;
-    }
-
-    function _getCurrentSupply() private view returns(uint256, uint256) {
-        uint256 rSupply = _rTotal;
-        uint256 tSupply = _tTotal;
-        for (uint256 i = 0; i < _excluded.length; i++) {
-            if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
-            rSupply = rSupply - _rOwned[_excluded[i]] ;
-            tSupply = tSupply - _tOwned[_excluded[i]];
-        }
-        if (rSupply < _rTotal / _tTotal ) return (_rTotal, _tTotal);
-        return (rSupply, tSupply);
-    }
-    
     function _takeLiquidity(uint256 tLiquidity) private {
-        uint256 currentRate =  _getRate();
-        uint256 rLiquidity = tLiquidity * currentRate;
-        _rOwned[address(this)] = _rOwned[address(this)] + rLiquidity;
         if(_isExcluded[address(this)])
             _tOwned[address(this)] = _tOwned[address(this)] + tLiquidity;
     }
     
     function _takeLiquidityOnSale(uint256 tLiquidity) private {
-        uint256 currentRate =  _getRate();
-        uint256 rLiquidity = tLiquidity * currentRate;
-        _rOwned[address(this)] = _rOwned[address(this)] + rLiquidity;
         if(_isExcluded[address(this)])
             _tOwned[address(this)] = _tOwned[address(this)] + tLiquidity;
     }
-    
-    
     
     function calculateTaxFee(uint256 _amount) private  returns (uint256) {
         if ( !saleTax  ) {saleTax = true; return 0 ;}
@@ -969,21 +813,85 @@ contract Rezerve is Context, IERC20, Ownable {
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
-    
-    
+
     function checkDaiOwnership( address _address ) public view returns(bool){
         IERC20 _dai = IERC20(DAI);
         uint256 _daibalance = _dai.balanceOf(_address );
-        return ( _daibalance >0 );
+        return ( _daibalance > 0 );
+    }
+
+    // ========== Owner Functions ========== //
+
+    function excludeFromReward(address account) internal {
+        // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Uniswap router.');
+        require(!_isExcluded[account], "Account is already excluded");
+        _isExcluded[account] = true;
+        _excluded.push(account);
+    }
+
+    function includeInReward(address account) external onlyOwner() {
+        require(_isExcluded[account], "Account is already excluded");
+        for (uint256 i = 0; i < _excluded.length; i++) {
+            if (_excluded[i] == account) {
+                _excluded[i] = _excluded[_excluded.length - 1];
+                _tOwned[account] = 0;
+                _isExcluded[account] = false;
+                _excluded.pop();
+                break;
+            }
+        }
+    }
+
+    function excludeFromFee(address account) public onlyOwner {
+        _isExcludedFromFee[account] = true;
+    }
+
+    function includeInFee(address account) public onlyOwner {
+        _isExcludedFromFee[account] = false;
+    }
+
+    function setSellFeePercent(uint256 taxFee) external onlyOwner() {
+        require ( taxFee < 30 , "Tax too high" );
+        _taxFeeonSale = taxFee;
+    }
+
+    function setBuyFeePercent(uint256 liquidityFee) external onlyOwner() {
+        require ( liquidityFee < 11 , "Tax too high" );
+        _liquidityFee = liquidityFee;
+    }
+
+    function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
+        _maxTxAmount = ( _tTotal * maxTxPercent)/10**6;
+    }
+
+    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
+        swapAndLiquifyEnabled = _enabled;
+        emit SwapAndLiquifyEnabledUpdated(_enabled);
+    }
+
+    function setReserveStakingReceiver ( address _address ) public onlyOwner {
+        require(_address != address(0), "ReserveStakingReceiver is zero address");
+        ReserveStakingReceiver = _address;
+        excludeFromFee( _address );
+        addRezerveEcosystemAddress(_address);
+    }
+    
+    function setReserveStaking ( address _address ) public onlyOwner {
+        require(_address != address(0), "ReserveStaking is zero address");
+        reserveStaking = _address;
+        excludeFromFee( _address );
+        addRezerveEcosystemAddress(_address);
+    }
+
+    function setMinimumNumber ( uint256 _min ) public onlyOwner {
+        numTokensSellToAddToLiquidity = _min * 10** 9;
     }
 
     function daiShieldToggle () public onlyOwner {
-        
         daiShield = !daiShield;
     }
     
     function AutoSwapToggle () public onlyOwner {
-        
         AutoSwap = !AutoSwap;
     }
 
@@ -1015,7 +923,66 @@ contract Rezerve is Context, IERC20, Ownable {
     function removeRezerveEcosystemAddress(address account) public onlyOwner {
         rezerveEcosystem[account] = false;
     }
+
+    function toggleStakingTax() public onlyOwner {
+        stakingTax = !stakingTax;
+    }
+
+    function addToLP(uint256 tokenAmount, uint256 daiAmount) public onlyOwner {
+        // approve token transfer to cover all possible scenarios
+        
+        _transfer ( msg.sender, address(this) , tokenAmount );
+        _approve(address(this), address(uniswapV2Router), tokenAmount);
+        
+        IERC20 _dai = IERC20 ( DAI );
+        _dai.approve(  address(uniswapV2Router), daiAmount);
+        _dai.transferFrom ( msg.sender, address(this) , daiAmount );
+        
+        // add the liquidity
+        uniswapV2Router.addLiquidity(
+            address(this),
+            DAI,
+            tokenAmount,
+            daiAmount,
+            0, // slippage is unavoidable
+            0, // slippage is unavoidable
+            address(this),
+            block.timestamp
+        );
+        contractPauser();
+    }
     
+    function withdrawLPTokens () public onlyOwner {
+         IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
+          uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
+         _uniswapV2Pair.transfer( msg.sender, _lpbalance );
+    }
+    
+    function setLPPullPercentage ( uint8 _perc ) public onlyOwner {
+        require ( _perc >9 && _perc <71);
+        lpPullPercentage = _perc;
+    }
+
+    function removeLP () public onlyOwner {
+        saleTax = false;  
+        IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
+        uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
+        uint256 _perc = (_lpbalance * lpPullPercentage ) / 100;
+        
+        _uniswapV2Pair.approve( address(uniswapV2Router), _perc );
+        uniswapV2Router.removeLiquidity(
+            address(this),
+            DAI,
+            _perc,
+            0,
+            0,
+            reserveExchange,
+            block.timestamp + 3 minutes
+        ); 
+        RezerveExchange _reserveexchange = RezerveExchange ( reserveExchange );
+        _reserveexchange.flush();
+    }
+
     function _transfer(
         address from,
         address to,
@@ -1083,10 +1050,6 @@ contract Rezerve is Context, IERC20, Ownable {
             _tokenTransfer(from, to, 1, false);
     }
 
-    function toggleStakingTax() public onlyOwner {
-        stakingTax = !stakingTax;
-    }
-    
     function swapIt(uint256 contractTokenBalance) internal lockTheSwap {
         uint256 _exchangeshare = contractTokenBalance;      
         if ( stakingTax ){
@@ -1097,16 +1060,13 @@ contract Rezerve is Context, IERC20, Ownable {
         swapTokensForDai(_exchangeshare); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
     }
 
-   
-    function swapTokensForDai(uint256 tokenAmount) internal   {
+    function swapTokensForDai(uint256 tokenAmount) internal {
         // generate the uniswap pair path of token -> weth
-        
         address[] memory path = new address[](2);
        
         path[0] = address(this);
         path[1] = DAI;
-       
-       uniswapV2Router.swapExactTokensForTokens(
+        uniswapV2Router.swapExactTokensForTokens(
             tokenAmount,
             0, // accept any amount of DAI
             path,
@@ -1115,66 +1075,6 @@ contract Rezerve is Context, IERC20, Ownable {
         );
     }
     
-    function addToLP(uint256 tokenAmount, uint256 daiAmount) public onlyOwner {
-        // approve token transfer to cover all possible scenarios
-        
-        _transfer ( msg.sender, address(this) , tokenAmount );
-        _approve(address(this), address(uniswapV2Router), tokenAmount);
-        
-        IERC20 _dai = IERC20 ( DAI );
-        _dai.approve(  address(uniswapV2Router), daiAmount);
-        _dai.transferFrom ( msg.sender, address(this) , daiAmount );
-        
-        // add the liquidity
-        uniswapV2Router.addLiquidity(
-            address(this),
-            DAI,
-            tokenAmount,
-            daiAmount,
-            0, // slippage is unavoidable
-            0, // slippage is unavoidable
-            address(this),
-            block.timestamp
-        );
-        contractPauser();
-    }
-    
-    function withdrawLPTokens () public onlyOwner {
-         
-         IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
-          uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
-         _uniswapV2Pair.transfer( msg.sender, _lpbalance );
-        
-    }
-    
-    function setLPPullPercentage ( uint8 _perc ) public onlyOwner {
-        require ( _perc >9 && _perc <71);
-        lpPullPercentage = _perc;
-    }
-    
-    function removeLP () public onlyOwner {
-        saleTax = false;  
-        IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
-         uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
-         uint256 _perc = (_lpbalance * lpPullPercentage ) / 100;
-        
-          _uniswapV2Pair.approve( address(uniswapV2Router), _perc );
-         uniswapV2Router.removeLiquidity(
-            address(this),
-            DAI,
-            _perc,
-            0,
-            0,
-            reserveExchange,
-            block.timestamp + 3 minutes
-        ); 
-         RezerveExchange _reserveexchange = RezerveExchange ( reserveExchange );
-         _reserveexchange.flush();
-        
-    }
-    
-    
-
     //this method is responsible for taking all fee, if takeFee is true
     function _tokenTransfer(address sender, address recipient, uint256 amount,bool takeFee) private {
         if(!takeFee)
@@ -1197,34 +1097,37 @@ contract Rezerve is Context, IERC20, Ownable {
     }
 
     function _transferStandard(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender] - rAmount ;
-        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount ;
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getTValues(tAmount);
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
-        _reflectFee(rFee, tFee);
+        _reflectFee(tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferToExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale) = _getValues(tAmount);
-        _rOwned[sender] = _rOwned[sender] - rAmount;
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale) = _getTValues(tAmount);
         _tOwned[recipient] = _tOwned[recipient] + tTransferAmount;
-        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;           
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
-        _reflectFee(rFee, tFee);
+        _reflectFee(tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferFromExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale ) = _getValues(tAmount);
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity , uint256 tLiquiditySale ) = _getTValues(tAmount);
         _tOwned[sender] = _tOwned[sender] - tAmount;
-        _rOwned[sender] = _rOwned[sender] - rAmount;
-        _rOwned[recipient] = _rOwned[recipient] + rTransferAmount;
         _takeLiquidity(tLiquidity);
         _takeLiquidityOnSale(tLiquiditySale);
-        _reflectFee(rFee, tFee);
+        _reflectFee(tFee);
+        emit Transfer(sender, recipient, tTransferAmount);
+    }
+
+    function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity, uint256 tLiquiditySale ) = _getTValues(tAmount);
+        _tOwned[sender] = _tOwned[sender] - tAmount;
+        _takeLiquidity(tLiquidity);
+        _takeLiquidityOnSale(tLiquiditySale);
+        _reflectFee(tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 }
