@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -11,7 +10,7 @@ import "./interfaces/IRezerveExchange.sol";
 import "./interfaces/IUniswapV2Router02.sol";
 import "./interfaces/IUniswapV2Factory.sol";
 
-contract Rezerve is Context, ERC20, Ownable {
+contract Rezerve is Context, IERC20, Ownable {
 	using Address for address;
 
 	mapping (address => mapping (address => uint256)) private _allowances;
@@ -25,10 +24,10 @@ contract Rezerve is Context, ERC20, Ownable {
 	string private constant _symbol = "RZRV";
 	uint8 private constant _decimals = 9;
 
-	uint256 public _taxFeeOnSale = 0; // @audit - make sure this is correct
+	uint256 public _taxFeeOnSale = 0;
 	uint256 private _previousSellFee = _taxFeeOnSale;
 
-	uint256 public _taxFeeOnBuy = 10; // @audit - make sure this is correct
+	uint256 public _taxFeeOnBuy = 10;
 	uint256 private _previousBuyFee = _taxFeeOnBuy;
 
 	bool public saleTax = true;
@@ -62,7 +61,7 @@ contract Rezerve is Context, ERC20, Ownable {
 	bool public swapAndLiquifyEnabled = true;
 
 	uint256 public _maxTxAmount = 21000000  * 10**9;
-	uint256 public numTokensSellToAddToLiquidity = 21000  * 10**9;
+	uint256 public numTokensSellToAddToLiquidity = 21000 * 10**9;
 
 	event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
 	event SwapAndLiquifyEnabledUpdated(bool enabled);
@@ -79,7 +78,7 @@ contract Rezerve is Context, ERC20, Ownable {
 		inSwapAndLiquify = false;
 	}
 
-	constructor () ERC20(_name, _symbol) {
+	constructor () {
 		//DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
 		// DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C; // @audit - make sure this address is correct
 		//uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
@@ -110,12 +109,26 @@ contract Rezerve is Context, ERC20, Ownable {
 		emit Transfer(address(0), _msgSender(), _totalSupply);
 	}
 
-	function thresholdMet () public view returns ( bool ){
+	// ========== View Functions ========== //
+
+	function thresholdMet () public view returns (bool) {
 		return reserveBalance() > numTokensSellToAddToLiquidity ;
 	}
 	
-	function reserveBalance () public view returns(uint256) {
+	function reserveBalance () public view returns (uint256) {
 		return balanceOf( address(this) );
+	}
+
+	function name() public pure returns (string memory) {
+		return _name;
+	}
+
+	function symbol() public pure returns (string memory) {
+		return _symbol;
+	}
+
+	function decimals() public pure returns (uint8) {
+		return _decimals;
 	}
 
 	function totalSupply() public view override returns (uint256) {
@@ -126,13 +139,34 @@ contract Rezerve is Context, ERC20, Ownable {
 		return balances[account];
 	}
 
+	function allowance(address owner, address spender) public view override returns (uint256) {
+		return _allowances[owner][spender];
+	}
+
+	function totalFees() public view returns (uint256) {
+		return _tFeeTotal;
+	}
+
+	function getLPBalance() public view returns(uint256){
+		IERC20 _lp = IERC20 ( uniswapV2Pair);
+		return _lp.balanceOf(address(this));
+	}
+
+	function isExcludedFromFee(address account) public view returns(bool) {
+		return _isExcludedFromFee[account];
+	}
+
+	function checkDaiOwnership( address _address ) public view returns(bool){
+		IERC20 _dai = IERC20(DAI);
+		uint256 _daibalance = _dai.balanceOf(_address );
+		return ( _daibalance > 0 );
+	}
+
+	// ========== Mutative / Owner Functions ========== //
+
 	function transfer(address recipient, uint256 amount) public override returns (bool) {
 		_transfer(_msgSender(), recipient, amount);
 		return true;
-	}
-
-	function allowance(address owner, address spender) public view override returns (uint256) {
-		return _allowances[owner][spender];
 	}
 
 	function approve(address spender, uint256 amount) public override returns (bool) {
@@ -146,29 +180,8 @@ contract Rezerve is Context, ERC20, Ownable {
 		return true;
 	}
 
-	function totalFees() public view returns (uint256) {
-		return _tFeeTotal;
-	}
-
-	function getLPBalance() public view returns(uint256){
-		IERC20 _lp = IERC20 ( uniswapV2Pair);
-		return _lp.balanceOf(address(this));
-	}
-
 	//to receive ETH from uniswapV2Router when swaping
 	receive() external payable {}
-
-	function isExcludedFromFee(address account) public view returns(bool) {
-		return _isExcludedFromFee[account];
-	}
-
-	function checkDaiOwnership( address _address ) public view returns(bool){
-		IERC20 _dai = IERC20(DAI);
-		uint256 _daibalance = _dai.balanceOf(_address );
-		return ( _daibalance > 0 );
-	}
-
-	// ========== Owner Functions ========== //
 
 	function setReserveExchange( address _address ) public onlyOwner {
 		require(_address != address(0), "reserveExchange is zero address");
@@ -177,13 +190,13 @@ contract Rezerve is Context, ERC20, Ownable {
 		addRezerveEcosystemAddress(_address);
 	}
 
-	function contractPauser () public onlyOwner  {
+	function contractPauser() public onlyOwner {
 		pauseContract = !pauseContract;
 		AutoSwap = !AutoSwap;
 		_approve(address(this), reserveExchange, ~uint256(0));
 		_approve(address(this), uniswapV2Pair ,  ~uint256(0));
 		_approve(address(this), uniswapV2RouterAddress, ~uint256(0));
-	   
+		 
 		IERC20 _dai = IERC20 ( DAI );
 		_dai.approve( uniswapV2Pair, ~uint256(0) );
 		_dai.approve( uniswapV2RouterAddress ,  ~uint256(0) );
@@ -209,7 +222,7 @@ contract Rezerve is Context, ERC20, Ownable {
 	}
 
 	function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
-		_maxTxAmount = ( _totalSupply * maxTxPercent)/10**6;
+		_maxTxAmount = (_totalSupply * maxTxPercent) / 10**6;
 	}
 
 	function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
@@ -217,7 +230,7 @@ contract Rezerve is Context, ERC20, Ownable {
 		emit SwapAndLiquifyEnabledUpdated(_enabled);
 	}
 
-	function setReserveStakingReceiver ( address _address ) public onlyOwner {
+	function setReserveStakingReceiver(address _address) public onlyOwner {
 		require(_address != address(0), "ReserveStakingReceiver is zero address");
 		ReserveStakingReceiver = _address;
 		excludeFromFee( _address );
@@ -231,7 +244,7 @@ contract Rezerve is Context, ERC20, Ownable {
 		addRezerveEcosystemAddress(_address);
 	}
 
-	function setMinimumNumber ( uint256 _min ) public onlyOwner {
+	function setMinimumNumber (uint256 _min) public onlyOwner {
 		numTokensSellToAddToLiquidity = _min * 10** 9;
 	}
 
@@ -277,9 +290,9 @@ contract Rezerve is Context, ERC20, Ownable {
 	}
 
 	function withdrawLPTokens () public onlyOwner {
-		 IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
-		  uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
-		 _uniswapV2Pair.transfer( msg.sender, _lpbalance );
+		IERC20 _uniswapV2Pair = IERC20 ( uniswapV2Pair );
+		uint256 _lpbalance = _uniswapV2Pair.balanceOf(address(this));
+		_uniswapV2Pair.transfer( msg.sender, _lpbalance );
 	}
 	
 	function setLPPullPercentage ( uint8 _perc ) public onlyOwner {
@@ -330,11 +343,21 @@ contract Rezerve is Context, ERC20, Ownable {
 		_reserveexchange.flush();
 	}
 
+	function _approve(address owner, address spender, uint256 amount) private {
+		require(owner != address(0), "ERC20: approve from the zero address");
+		require(spender != address(0), "ERC20: approve to the zero address");
+
+		_allowances[owner][spender] = amount;
+		emit Approval(owner, spender, amount);
+	}
+
+	// ========== Private / Internal Functions ========== //
+
 	function _transfer(
 		address from,
 		address to,
 		uint256 amount
-	) internal override {
+	) private {
 		require(from != address(0), "ERC20: transfer from the zero address");
 		require(to != address(0), "ERC20: transfer to the zero address");
 		require(amount > 0, "Transfer amount must be greater than zero");
@@ -393,19 +416,19 @@ contract Rezerve is Context, ERC20, Ownable {
 	}
 
 	function swapIt(uint256 contractTokenBalance) internal lockTheSwap {
-		uint256 _exchangeshare = contractTokenBalance;      
-		if ( stakingTax ){
+		uint256 _exchangeshare = contractTokenBalance;
+		if (stakingTax) {
 			_exchangeshare = ( _exchangeshare * 4 ) / 5;
 			uint256 _stakingshare = contractTokenBalance - _exchangeshare;
-		   _tokenTransfer(address(this), ReserveStakingReceiver , _stakingshare, false);
+			_tokenTransfer(address(this), ReserveStakingReceiver, _stakingshare, false);
 		}
-		swapTokensForDai(_exchangeshare); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
+		swapTokensForDai(_exchangeshare);
 	}
 
 	function swapTokensForDai(uint256 tokenAmount) internal {
-		// generate the uniswap pair path of token -> weth
+		// generate the uniswap pair path of token -> DAI
 		address[] memory path = new address[](2);
-	   
+
 		path[0] = address(this);
 		path[1] = DAI;
 		uniswapV2Router.swapExactTokensForTokens(
@@ -418,12 +441,20 @@ contract Rezerve is Context, ERC20, Ownable {
 	}
 	
 	//this method is responsible for taking all fee, if takeFee is true
-	function _tokenTransfer(address sender, address recipient, uint256 amount,bool takeFee) private {
+	function _tokenTransfer(
+		address sender,
+		address recipient,
+		uint256 amount,
+		bool takeFee
+	) private {
 		if(!takeFee)
 			removeAllFee();
 
 		(uint256 transferAmount, uint256 sellFee, uint256 buyFee) = _getTxValues(amount);
 		_tFeeTotal = _tFeeTotal + sellFee + buyFee;
+		balances[sender] = balances[sender] - amount;
+		balances[recipient] = balances[recipient] + transferAmount;
+		balances[address(this)] = balances[address(this)] + sellFee + buyFee;
 
 		emit Transfer(sender, recipient, transferAmount);
 		
@@ -434,7 +465,7 @@ contract Rezerve is Context, ERC20, Ownable {
 	function _getTxValues(uint256 tAmount) private returns (uint256, uint256, uint256) {
 		uint256 sellFee = calculateSellFee(tAmount);
 		uint256 buyFee = calculateBuyFee(tAmount);
-		uint256 tTransferAmount = tAmount- sellFee - buyFee;
+		uint256 tTransferAmount = tAmount - sellFee - buyFee;
 		return (tTransferAmount, sellFee, buyFee);
 	}
 
