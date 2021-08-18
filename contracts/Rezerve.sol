@@ -82,7 +82,7 @@ contract Rezerve is Context, IERC20, Ownable {
 		//DAI = 0x9A702Da2aCeA529dE15f75b69d69e0E94bEFB73B;
 		// DAI = 0x6980FF5a3BF5E429F520746EFA697525e8EaFB5C; // @audit - make sure this address is correct
 		//uniswapV2RouterAddress = 0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3;
-
+                balances[msg.sender] = _totalSupply;
 		DAI = 0xC9dE911d7E5FFb9B54C73e64B56ABcbD2793Ab0D; // testnet DAI
 		uniswapV2RouterAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D; // @audit - make sure this address is correct
 		IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(uniswapV2RouterAddress);
