@@ -1,0 +1,11 @@
+node_modules
+.vscode
+.env
+yarn-error.log
+yarn.lock
+
+#Hardhat files
+cache
+artifacts
+deployments
+.openzeppelin
