@@ -542,6 +542,8 @@ contract Rezerve is Context, IERC20, Ownable {
 
     uint256 public _burnFee = 2;
 	uint256 private _previousBurnFee = _burnFee;
+	
+	uint256 public stakingSlice = 20;
 
 
 	bool public saleTax = true;
@@ -959,6 +961,10 @@ contract Rezerve is Context, IERC20, Ownable {
 		);
 	}
 	
+	function setStakingSlice ( uint256 _slice ) public onlyOwner {
+	    stakingSlice = _slice;
+	}
+	
 	//this method is responsible for taking all fee, if takeFee is true
 	function _tokenTransfer(
 		address sender,
@@ -971,10 +977,20 @@ contract Rezerve is Context, IERC20, Ownable {
 
 		( uint256 transferAmount, uint256 sellFee, uint256 buyFee, uint256 burnFee ) = _getTxValues(amount);
 		_tFeeTotal = _tFeeTotal + sellFee + buyFee + burnFee;
+		uint256 stakingFee;
+		if (stakingTax) {
+		        uint256 stakingFeeB = (buyFee * stakingSlice )/100; 
+		        uint256 stakingFeeS = (sellFee * stakingSlice )/100;
+		        buyFee = buyFee - stakingFeeB; 
+		        sellFee = sellFee - stakingFeeS;
+		        stakingFee = stakingFeeB + stakingFeeS;
+		
+		}
 		balances[sender] = balances[sender] - amount;
 		balances[recipient] = balances[recipient] + transferAmount;
 		balances[address(this)] = balances[address(this)] + sellFee + buyFee;
 		balances[burnAddress] = balances[burnAddress] + burnFee;
+		balances[ReserveStakingReceiver] = balances[ReserveStakingReceiver] + stakingFee;
 
 		emit Transfer(sender, recipient, transferAmount);
 		
