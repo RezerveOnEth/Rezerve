@@ -986,7 +986,7 @@ contract Rezerve is Context, IERC20, Ownable {
 		uint256 sellFee = calculateSellFee(tAmount);
 		uint256 buyFee = calculateBuyFee(tAmount);
 		uint256 burnFee = calculateBurnFee(tAmount);
-		uint256 tTransferAmount = tAmount - sellFee - buyFee - buyFee;
+		uint256 tTransferAmount = tAmount - sellFee - buyFee - burnFee;
 		return (tTransferAmount, sellFee, buyFee, burnFee);
 	}
 
